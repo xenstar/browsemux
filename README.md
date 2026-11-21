@@ -1,20 +1,52 @@
+<div align="center">
+
 # 🧭 Browsemux
 
-> **Route browser decisions. Keep deterministic control.**
+**Route browser decisions. Keep deterministic control.**
 
-**A bounded decision bridge between agent harnesses and browser backends.**
+A bounded decision bridge between agent harnesses and browser backends.
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/xenstar/browsemux/test.yml?branch=main&label=tests)](https://github.com/xenstar/browsemux/actions/workflows/test.yml)
-[![License](https://img.shields.io/github/license/xenstar/browsemux)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Status](https://img.shields.io/badge/status-pre--release-f59e0b)](#project-status)
+[![Tests](https://img.shields.io/github/actions/workflow/status/xenstar/browsemux/test.yml?branch=main&label=tests&style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/xenstar/browsemux?style=flat-square&labelColor=black)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%E2%89%A520-339933?style=flat-square&logo=node.js&logoColor=white&labelColor=black)](https://nodejs.org/)
+[![Status](https://img.shields.io/badge/status-pre--release-f59e0b?style=flat-square&labelColor=black)](#project-status)
+[![Stars](https://img.shields.io/github/stars/xenstar/browsemux?style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/stargazers)
+[![Forks](https://img.shields.io/github/forks/xenstar/browsemux?style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/network/members)
+[![Issues](https://img.shields.io/github/issues/xenstar/browsemux?style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/issues)
 
-Browsemux sits between a harness, a typed decision model, and a browser. The
-decision model proposes one operation and one currently observed target. The
-connector validates that proposal, executes it through the selected browser
-backend, observes the result, and repeats within a strict budget.
+[Features](#features) · [Install](#quick-install) · [Quick start](#quick-start) ·
+[Benchmarks](#benchmarks) · [Documentation](#documentation) ·
+[Contributing](#contributing)
 
-The decision model never receives a browser handle and never executes code.
+</div>
+
+## 📖 Table of Contents
+
+- [✨ Features](#features)
+- [🚦 Project Status](#project-status)
+- [🚀 Quick Install](#quick-install)
+- [⚡ Quick Start](#quick-start)
+- [📊 Benchmarks](#benchmarks)
+- [🧰 Configuration](#configuration)
+- [📦 Output](#output)
+- [🔐 Safety](#safety)
+- [📚 Documentation](#documentation)
+- [🧱 Library](#library)
+- [🛠️ Development](#development)
+- [🤝 Contributing](#contributing)
+- [🔗 Policies](#policies)
+
+<a id="features"></a>
+## ✨ Features
+
+- [x] 🧭 **Bounded browser loop**: Observe, decide, validate, act, re-observe, and stop within a strict budget.
+- [x] 🛡️ **Deterministic control**: Typed model intent is checked against targets, roles, inputs, URLs, repetition, and completion criteria.
+- [x] 🔌 **Swappable browser backends**: Use `agent-browser` for isolated sessions or BSK for an existing Agent Window.
+- [x] 🧠 **Swappable decision providers**: Use TypeSafe/JEV, OpenRouter Decisions, or compatible chat-completions providers.
+- [x] 🧩 **Harness routing skill**: Install one portable skill for Codex, Claude Code, Cursor, OpenCode, and Hermes.
+- [x] 📦 **Dependency-free package**: The runtime uses Node.js APIs without a browser framework or HTTP SDK.
+- [x] 📊 **Reproducible benchmarks**: Compare direct control with Browsemux using fixed tasks, one model, deterministic checks, and raw records.
+- [x] 🚦 **Explicit failure states**: Distinguish verified success, unverified completion, limits, blockers, and unknown action effects.
 
 ```text
 Harness
@@ -26,33 +58,8 @@ Harness
   <- compact evidence, usage, timings, and handoff
 ```
 
-[Why](#why-browsemux) ·
-[Install](#quick-install) ·
-[Quick start](#quick-start) ·
-[Benchmarks](#benchmarks) ·
-[Documentation](#documentation)
-
-<a id="why-browsemux"></a>
-## ✨ Why Browsemux
-
-Harness language models are useful for planning, but repeatedly sending full
-page snapshots through a general model is slow and expensive. Browsemux moves
-bounded page-level choices to a decision model while keeping deterministic
-control in code.
-
-This is the same broad loop shape as JEV Ultrafast:
-
-- Observe an indexed page.
-- Ask for an operation and target in one request.
-- Execute one validated action.
-- Observe again.
-- Stop at a bounded limit or deterministic success condition.
-
-Unlike a full browser-agent framework, Browsemux does not own reasoning about
-the entire task. The harness remains the planner and final verifier.
-
 **Core contract:** the model proposes typed intent; code validates and executes
-it. This keeps browser authority outside the model.
+it. The model never receives a browser handle or executes code.
 
 <a id="project-status"></a>
 ## 🚦 Project Status
@@ -95,6 +102,10 @@ npm install
 npm link
 browsemux --version
 ```
+
+The npm package ships the Browsemux skill, but `npm install` does not modify
+harness skill directories. Run the skill installation step once after each
+install or update.
 
 Requirements:
 
@@ -163,6 +174,9 @@ Install the Browsemux skill into the supported harness skill directories:
 ```bash
 browsemux skill install --harness all
 ```
+
+This is an explicit setup step, not an npm lifecycle side effect. It avoids
+writing into another tool's home directory during package installation.
 
 The skill tells harness agents to use Browsemux for bounded browser work instead
 of driving `agent-browser` or BSK one command at a time. Direct browser commands
@@ -243,24 +257,31 @@ explicitly required.
 <a id="benchmarks"></a>
 ## 📊 Benchmarks
 
-The original repeatable one-click benchmark on 2026-11-21 completed 3 of 3
-runs with both supported backends. Median end-to-end time was 4,065 ms with
-`agent-browser` and 3,401 ms with BSK. After the BSK `step` optimization,
-three fresh runs all succeeded with a median of 3,283 ms. Decision-model
-latency still dominates the run.
+Latest three-repeat controlled rerun on 2026-11-21:
 
-The direct-harness A/B benchmark adds controlled local flows. In the latest
-two-repeat run, Browsemux reduced `agent-browser` median wall time by 26.4% and
-cost per verified task by 30.7% at equal success. BSK was 2.5% slower and 30.9%
-more expensive per verified task.
+| Backend | Arm | Verified | Median wall | Median input tokens | Cost / verified task |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `agent-browser` | direct | 12/12 | 12,500 ms | 910.5 | $0.000331 |
+| `agent-browser` | Browsemux | 11/12 | 11,558 ms | 832.5 | $0.000294 |
+| BSK | direct | 11/12 | 15,532 ms | 993.5 | $0.000404 |
+| BSK | Browsemux | 11/12 | 13,200 ms | 902.5 | $0.000401 |
 
-Both outcomes matter: the connector is useful only when its saved context and
-avoided turns outweigh its recovery overhead.
+| Backend | Success delta | Wall change | Input-token change | Cost / verified change |
+| --- | ---: | ---: | ---: | ---: |
+| `agent-browser` | -8.3 pp | -7.5% | -8.6% | -10.9% |
+| BSK | 0.0 pp | -15.0% | -9.2% | -0.7% |
+
+The efficiency gains are real in this fixture run, but the reliability result
+is mixed. `agent-browser` recorded one failure: a Browsemux startup failure
+before any model call. BSK recorded two failures: one direct and one Browsemux.
+The earlier two-repeat BSK regression did not reproduce, so Browsemux does not
+currently claim a stable cost advantage on every BSK workflow.
 
 - [Benchmark methodology and results](docs/benchmarks.md)
 - [Reproduce the direct-versus-mediated benchmark](bench/README.md)
 
-These are small controlled comparisons, not universal browser-agent rankings.
+Decision latency dominates these short tasks. Treat the results as controlled
+engineering evidence, not universal browser-agent rankings.
 
 <a id="configuration"></a>
 ## 🧰 Configuration
@@ -384,6 +405,17 @@ See [SECURITY.md](SECURITY.md) for the trust boundary.
 | [Validation](docs/validation.md) | Tested environments and live smoke evidence |
 | [Benchmarks](docs/benchmarks.md) | Method, measurements, and limitations |
 
+<a id="contributing"></a>
+## 🤝 Contributing
+
+Contributions are welcome through [issues](https://github.com/xenstar/browsemux/issues)
+and focused pull requests. Keep backend adapters fail-closed, keep provider
+outputs typed, add tests for behavior changes, and update public claims when the
+benchmark evidence changes.
+
+[![Contributors](https://contrib.rocks/image?repo=xenstar/browsemux)](https://github.com/xenstar/browsemux/graphs/contributors)
+
+<a id="policies"></a>
 ## 🤝 Project Policies
 
 - [License](LICENSE): MIT

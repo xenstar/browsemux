@@ -56,7 +56,43 @@ The fixture has four tasks:
 3. Select a dropdown value and submit.
 4. Complete a two-step navigation journey.
 
-### Published Run
+### Latest Three-Repeat Rerun
+
+Environment:
+
+- Node.js `v24.22.3`
+- `agent-browser` `0.43.0`
+- BSK `0.5.0`
+- OpenRouter chat completions with `deepseek/deepseek-chat`
+- Three recorded repeats per task/backend/arm
+- Separate backend runs: 24 records for `agent-browser` and 24 for BSK
+- Bounded model retries: 2
+
+| Backend | Arm | Verified | Median wall | Median input tokens | Cost / verified task |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `agent-browser` | direct | 12/12 | 12,500 ms | 910.5 | $0.000331 |
+| `agent-browser` | Browsemux | 11/12 | 11,558 ms | 832.5 | $0.000294 |
+| BSK | direct | 11/12 | 15,532 ms | 993.5 | $0.000404 |
+| BSK | Browsemux | 11/12 | 13,200 ms | 902.5 | $0.000401 |
+
+Relative to the direct harness:
+
+| Backend | Success delta | Median wall change | Input-token change | Cost / verified task change |
+| --- | ---: | ---: | ---: | ---: |
+| `agent-browser` | -8.3 pp | -7.5% | -8.6% | -10.9% |
+| BSK | 0.0 pp | -15.0% | -9.2% | -0.7% |
+
+The efficiency signal favors Browsemux in this rerun, but the reliability result
+is mixed. `agent-browser` recorded one failure: a Browsemux run terminated
+during browser startup before any model call. BSK recorded two failures: one
+direct and one Browsemux. These failures remain in the success and cost totals.
+
+Result records:
+
+- `bench/results/2026-11-21-agent-browser-rerun/`
+- `bench/results/2026-11-21-bsk-rerun/`
+
+### Earlier Two-Repeat Run
 
 Environment:
 
@@ -86,23 +122,29 @@ Relative to the direct harness:
 
 ### Findings
 
-- Browsemux showed a meaningful advantage on this `agent-browser` fixture run:
-  equal verified success, 26.4% lower median wall time, 9.7% fewer input tokens,
-  and 30.7% lower cost per verified task.
-- Browsemux did not improve BSK on this run. Median wall time was 2.5% higher,
-  input tokens were 3.7% higher, and cost per verified task was 30.9% higher.
-- The BSK gap came mostly from a form with duplicate identical `Search` refs.
-  BSK exposed one non-working and one working ref. The no-progress guard and
-  recovery filtering now avoid the failed ref and reject premature `DONE`, but
-  the recovery path adds a model turn.
+- The latest `agent-browser` run recorded 7.5% lower median wall time, 8.6%
+  fewer input tokens, and 10.9% lower cost per verified task. Verified success
+  was 11/12 with Browsemux versus 12/12 direct because one Browsemux run
+  terminated during browser startup.
+- The latest BSK run reached equal verified success at 11/12, with 15.0% lower
+  median wall time, 9.2% fewer input tokens, and approximately flat cost per
+  verified task.
+- The earlier two-repeat BSK regression did not reproduce: Browsemux was 2.5%
+  slower and 30.9% more expensive in that sample. The sample was confounded by
+  one provider transport failure, one browser process termination, and a
+  duplicate-ref recovery turn. It is retained as historical evidence, not the
+  current headline.
+- BSK can still expose duplicate identical labels, such as two `Search` refs.
+  When the first ref makes no progress, recovery adds a model turn. This is the
+  main remaining efficiency risk visible in the benchmark.
 - Small tasks are dominated by model latency. Connector execution overhead is
   secondary, so context savings do not automatically produce wall-time wins.
-- Provider transport failures and one BSK process termination affected one run
-  per arm. They remain in the success-rate and cost totals.
+- Browser startup and provider transport failures must be tracked separately
+  from decision quality and action correctness.
 
-The raw records are in
-`bench/results/2026-11-21-direct-vs-browsemux/runs.json`. The generated summary
-is in the same directory.
+The earlier raw records are in
+`bench/results/2026-11-21-direct-vs-browsemux/`. The latest records are in the
+two rerun directories listed above.
 
 ### Reproduce
 
@@ -112,7 +154,7 @@ node bench/runner.mjs \
   --tasks open-link,search-form,select-filter,two-step-journey \
   --backends agent-browser,bsk \
   --arms direct,browsemux \
-  --repeats 2 \
+  --repeats 3 \
   --model deepseek/deepseek-chat \
   --model-retries 2 \
   --output-dir bench/results/local
@@ -247,17 +289,19 @@ classification modes.
 
 | Metric | Value |
 | --- | ---: |
-| Packed package | 34,333 bytes |
-| Unpacked package | 123,792 bytes |
-| Packaged files | 33 |
+| Packed package | approximately 45 KB |
+| Unpacked package | approximately 161 KB |
+| Packaged files | 38 |
 | Runtime dependencies | 0 |
 
 ## Limitations
 
 - Three samples are enough to catch repeated workflow defects, not to estimate
   tail latency.
-- The direct-vs-mediated run uses two repeats. Treat it as a reproducible smoke
-  comparison, not a final ranking.
+- The latest controlled rerun uses three repeats per task/backend/arm. Treat it
+  as reproducible engineering evidence, not a final ranking.
+- The earlier two-repeat run is superseded by the three-repeat rerun and remains
+  only as historical evidence of sample variance.
 - Network and provider load materially affect decision time.
 - Results use one public page and one pinned decision model.
 - The direct-vs-mediated fixture covers four short deterministic flows and one

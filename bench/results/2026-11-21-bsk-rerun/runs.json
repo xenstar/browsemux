@@ -1,0 +1,2187 @@
+{
+  "metadata": {
+    "startedAt": "2026-11-21T11:57:20.601Z",
+    "finishedAt": "2026-11-21T12:03:12.090Z",
+    "model": "deepseek/deepseek-chat",
+    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "tasks": [
+      "open-link",
+      "search-form",
+      "select-filter",
+      "two-step-journey"
+    ],
+    "repeats": 3,
+    "maxSnapshotChars": 8000,
+    "backends": [
+      "bsk"
+    ],
+    "arms": [
+      "direct",
+      "browsemux"
+    ],
+    "directMode": "cumulative-harness-conversation",
+    "runtime": {
+      "node": "v24.22.3",
+      "platform": "win32"
+    }
+  },
+  "runs": [
+    {
+      "id": "1:open-link:bsk:direct:1",
+      "taskId": "open-link",
+      "goal": "Open the documentation page.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 8198,
+        "open": 813,
+        "arm": 7290,
+        "close": 95
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 6883,
+        "actionMs": 406
+      },
+      "usage": {
+        "prompt_tokens": 319,
+        "completion_tokens": 24,
+        "total_tokens": 343,
+        "cost": 0.00012344,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00012344,
+          "upstream_inference_prompt_cost": 0.00010208,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 1346,
+      "finalUrl": "http://127.0.0.1:45036/docs",
+      "finalTitle": "Documentation",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 6883
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:open-link:bsk:browsemux:2",
+      "taskId": "open-link",
+      "goal": "Open the documentation page.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 5725,
+        "open": 715,
+        "arm": 4898,
+        "close": 112
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 4509,
+        "actionMs": 387
+      },
+      "usage": {
+        "prompt_tokens": 334,
+        "completion_tokens": 24,
+        "total_tokens": 358,
+        "cost": 0.00012824,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00012824,
+          "upstream_inference_prompt_cost": 0.00010688,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/docs",
+      "finalTitle": "Documentation",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4509
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:search-form:bsk:direct:3",
+      "taskId": "search-form",
+      "goal": "Search for Aurora and open the results page.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 22969,
+        "open": 746,
+        "arm": 22121,
+        "close": 102
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 16506,
+        "actionMs": 950
+      },
+      "usage": {
+        "prompt_tokens": 2000,
+        "completion_tokens": 71,
+        "total_tokens": 2071,
+        "cost": 0.00070319,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00070319,
+          "upstream_inference_prompt_cost": 0.0006399999999999999,
+          "upstream_inference_completions_cost": 0.00006319
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 3,
+      "modelRetries": 1,
+      "actions": 3,
+      "invalidActions": 0,
+      "browserCommands": 8,
+      "observationChars": 8107,
+      "finalUrl": "http://127.0.0.1:45036/results?q=Aurora",
+      "finalTitle": "Search results",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query",
+          "latencyMs": 8988
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 3836
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 3,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null,
+          "latencyMs": 3682
+        },
+        {
+          "type": "validation",
+          "step": 3,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:search-form:bsk:browsemux:4",
+      "taskId": "search-form",
+      "goal": "Search for Aurora and open the results page.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "error",
+      "reasonCode": "BROWSEMUX_ERROR",
+      "reason": "terminated",
+      "success": false,
+      "wallMs": {
+        "total": 17199,
+        "open": 994,
+        "arm": 16115,
+        "close": 90
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 9831,
+        "actionMs": 524
+      },
+      "usage": {
+        "prompt_tokens": 1001,
+        "completion_tokens": 47,
+        "total_tokens": 1048,
+        "cost": 0.00036215,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00036215,
+          "upstream_inference_prompt_cost": 0.00032032,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/search",
+      "finalTitle": "Catalog search",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query",
+          "confidence": 0.9,
+          "latencyMs": 4329
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 5502
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:select-filter:bsk:direct:5",
+      "taskId": "select-filter",
+      "goal": "Filter the plans to Pro and open the filtered result.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 15051,
+        "open": 724,
+        "arm": 14239,
+        "close": 88
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 13537,
+        "actionMs": 701
+      },
+      "usage": {
+        "prompt_tokens": 1111,
+        "completion_tokens": 47,
+        "total_tokens": 1158,
+        "cost": 0.00039735,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00039735,
+          "upstream_inference_prompt_cost": 0.00035552,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 4493,
+      "finalUrl": "http://127.0.0.1:45036/filtered?plan=pro",
+      "finalTitle": "Filtered plans",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan",
+          "latencyMs": 7988
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "latencyMs": 5549
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:select-filter:bsk:browsemux:6",
+      "taskId": "select-filter",
+      "goal": "Filter the plans to Pro and open the filtered result.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 11487,
+        "open": 769,
+        "arm": 10631,
+        "close": 87
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 10061,
+        "actionMs": 570
+      },
+      "usage": {
+        "prompt_tokens": 1013,
+        "completion_tokens": 47,
+        "total_tokens": 1060,
+        "cost": 0.00036599,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00036599,
+          "upstream_inference_prompt_cost": 0.00032416,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/filtered?plan=pro",
+      "finalTitle": "Filtered plans",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan",
+          "confidence": 0.9,
+          "latencyMs": 5703
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4358
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:two-step-journey:bsk:direct:7",
+      "taskId": "two-step-journey",
+      "goal": "Continue through the journey and finish it.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 16013,
+        "open": 666,
+        "arm": 15242,
+        "close": 105
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 11293,
+        "actionMs": 786
+      },
+      "usage": {
+        "prompt_tokens": 876,
+        "completion_tokens": 48,
+        "total_tokens": 924,
+        "cost": 0.00032304,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00032304,
+          "upstream_inference_prompt_cost": 0.00028032,
+          "upstream_inference_completions_cost": 0.00004272
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 1,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 3563,
+      "finalUrl": "http://127.0.0.1:45036/journey/complete",
+      "finalTitle": "Journey complete",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 3834
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "latencyMs": 7459
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "1:two-step-journey:bsk:browsemux:8",
+      "taskId": "two-step-journey",
+      "goal": "Continue through the journey and finish it.",
+      "repeat": 1,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 9839,
+        "open": 708,
+        "arm": 9042,
+        "close": 89
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 8268,
+        "actionMs": 773
+      },
+      "usage": {
+        "prompt_tokens": 804,
+        "completion_tokens": 48,
+        "total_tokens": 852,
+        "cost": 0.00030000000000000003,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00030000000000000003,
+          "upstream_inference_prompt_cost": 0.00025728000000000003,
+          "upstream_inference_completions_cost": 0.00004272
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/journey/complete",
+      "finalTitle": "Journey complete",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4220
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4048
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:open-link:bsk:browsemux:9",
+      "taskId": "open-link",
+      "goal": "Open the documentation page.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 5531,
+        "open": 569,
+        "arm": 4873,
+        "close": 89
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 4479,
+        "actionMs": 393
+      },
+      "usage": {
+        "prompt_tokens": 334,
+        "completion_tokens": 24,
+        "total_tokens": 358,
+        "cost": 0.00012824,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00012824,
+          "upstream_inference_prompt_cost": 0.00010688,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/docs",
+      "finalTitle": "Documentation",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4479
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:open-link:bsk:direct:10",
+      "taskId": "open-link",
+      "goal": "Open the documentation page.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 5933,
+        "open": 609,
+        "arm": 5246,
+        "close": 78
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 4904,
+        "actionMs": 341
+      },
+      "usage": {
+        "prompt_tokens": 319,
+        "completion_tokens": 24,
+        "total_tokens": 343,
+        "cost": 0.00012344,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00012344,
+          "upstream_inference_prompt_cost": 0.00010208,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 1346,
+      "finalUrl": "http://127.0.0.1:45036/docs",
+      "finalTitle": "Documentation",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 4904
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:search-form:bsk:browsemux:11",
+      "taskId": "search-form",
+      "goal": "Search for Aurora and open the results page.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 23155,
+        "open": 562,
+        "arm": 22385,
+        "close": 208
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 21411,
+        "actionMs": 973
+      },
+      "usage": {
+        "prompt_tokens": 2344,
+        "completion_tokens": 95,
+        "total_tokens": 2439,
+        "cost": 0.00083463,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00083463,
+          "upstream_inference_prompt_cost": 0.00075008,
+          "upstream_inference_completions_cost": 0.00008455
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 4,
+      "modelRetries": 0,
+      "actions": 3,
+      "invalidActions": 1,
+      "browserCommands": 8,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/results?q=Aurora",
+      "finalTitle": "Search results",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query",
+          "confidence": 0.9,
+          "latencyMs": 5841
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 5303
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 3,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 6016
+        },
+        {
+          "type": "validation",
+          "step": 3,
+          "accepted": false,
+          "code": "NO_OBSERVED_PROGRESS"
+        },
+        {
+          "type": "decision",
+          "step": 4,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4251
+        },
+        {
+          "type": "validation",
+          "step": 4,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:search-form:bsk:direct:12",
+      "taskId": "search-form",
+      "goal": "Search for Aurora and open the results page.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 17989,
+        "open": 803,
+        "arm": 17091,
+        "close": 95
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 16192,
+        "actionMs": 899
+      },
+      "usage": {
+        "prompt_tokens": 2000,
+        "completion_tokens": 71,
+        "total_tokens": 2071,
+        "cost": 0.00070319,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00070319,
+          "upstream_inference_prompt_cost": 0.0006399999999999999,
+          "upstream_inference_completions_cost": 0.00006319
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 3,
+      "modelRetries": 0,
+      "actions": 3,
+      "invalidActions": 0,
+      "browserCommands": 8,
+      "observationChars": 8107,
+      "finalUrl": "http://127.0.0.1:45036/results?q=Aurora",
+      "finalTitle": "Search results",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query",
+          "latencyMs": 5741
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 5358
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 3,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null,
+          "latencyMs": 5093
+        },
+        {
+          "type": "validation",
+          "step": 3,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:select-filter:bsk:browsemux:13",
+      "taskId": "select-filter",
+      "goal": "Filter the plans to Pro and open the filtered result.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 11882,
+        "open": 752,
+        "arm": 11057,
+        "close": 73
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 10572,
+        "actionMs": 484
+      },
+      "usage": {
+        "prompt_tokens": 1013,
+        "completion_tokens": 47,
+        "total_tokens": 1060,
+        "cost": 0.00036599,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00036599,
+          "upstream_inference_prompt_cost": 0.00032416,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/filtered?plan=pro",
+      "finalTitle": "Filtered plans",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan",
+          "confidence": 0.9,
+          "latencyMs": 4250
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 6322
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:select-filter:bsk:direct:14",
+      "taskId": "select-filter",
+      "goal": "Filter the plans to Pro and open the filtered result.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 16204,
+        "open": 594,
+        "arm": 15535,
+        "close": 75
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 15068,
+        "actionMs": 466
+      },
+      "usage": {
+        "prompt_tokens": 1111,
+        "completion_tokens": 47,
+        "total_tokens": 1158,
+        "cost": 0.00039735,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00039735,
+          "upstream_inference_prompt_cost": 0.00035552,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 4493,
+      "finalUrl": "http://127.0.0.1:45036/filtered?plan=pro",
+      "finalTitle": "Filtered plans",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan",
+          "latencyMs": 7239
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "latencyMs": 7829
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:two-step-journey:bsk:browsemux:15",
+      "taskId": "two-step-journey",
+      "goal": "Continue through the journey and finish it.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 16338,
+        "open": 514,
+        "arm": 15729,
+        "close": 95
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 14982,
+        "actionMs": 746
+      },
+      "usage": {
+        "prompt_tokens": 804,
+        "completion_tokens": 48,
+        "total_tokens": 852,
+        "cost": 0.00030000000000000003,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00030000000000000003,
+          "upstream_inference_prompt_cost": 0.00025728000000000003,
+          "upstream_inference_completions_cost": 0.00004272
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/journey/complete",
+      "finalTitle": "Journey complete",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 7865
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 7117
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "2:two-step-journey:bsk:direct:16",
+      "taskId": "two-step-journey",
+      "goal": "Continue through the journey and finish it.",
+      "repeat": 2,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 13833,
+        "open": 652,
+        "arm": 13098,
+        "close": 83
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 12481,
+        "actionMs": 617
+      },
+      "usage": {
+        "prompt_tokens": 876,
+        "completion_tokens": 48,
+        "total_tokens": 924,
+        "cost": 0.00032304,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00032304,
+          "upstream_inference_prompt_cost": 0.00028032,
+          "upstream_inference_completions_cost": 0.00004272
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 3563,
+      "finalUrl": "http://127.0.0.1:45036/journey/complete",
+      "finalTitle": "Journey complete",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 7471
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "latencyMs": 5010
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:open-link:bsk:direct:17",
+      "taskId": "open-link",
+      "goal": "Open the documentation page.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 9068,
+        "open": 649,
+        "arm": 8321,
+        "close": 98
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 7974,
+        "actionMs": 347
+      },
+      "usage": {
+        "prompt_tokens": 319,
+        "completion_tokens": 24,
+        "total_tokens": 343,
+        "cost": 0.00012344,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00012344,
+          "upstream_inference_prompt_cost": 0.00010208,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 1346,
+      "finalUrl": "http://127.0.0.1:45036/docs",
+      "finalTitle": "Documentation",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 7974
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:open-link:bsk:browsemux:18",
+      "taskId": "open-link",
+      "goal": "Open the documentation page.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 6921,
+        "open": 644,
+        "arm": 6200,
+        "close": 77
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 5872,
+        "actionMs": 328
+      },
+      "usage": {
+        "prompt_tokens": 334,
+        "completion_tokens": 24,
+        "total_tokens": 358,
+        "cost": 0.00012824,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00012824,
+          "upstream_inference_prompt_cost": 0.00010688,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/docs",
+      "finalTitle": "Documentation",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 5872
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:search-form:bsk:direct:19",
+      "taskId": "search-form",
+      "goal": "Search for Aurora and open the results page.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 30246,
+        "open": 585,
+        "arm": 29582,
+        "close": 79
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 28832,
+        "actionMs": 750
+      },
+      "usage": {
+        "prompt_tokens": 2000,
+        "completion_tokens": 71,
+        "total_tokens": 2071,
+        "cost": 0.00070319,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00070319,
+          "upstream_inference_prompt_cost": 0.0006399999999999999,
+          "upstream_inference_completions_cost": 0.00006319
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 3,
+      "modelRetries": 0,
+      "actions": 3,
+      "invalidActions": 0,
+      "browserCommands": 8,
+      "observationChars": 8107,
+      "finalUrl": "http://127.0.0.1:45036/results?q=Aurora",
+      "finalTitle": "Search results",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query",
+          "latencyMs": 11688
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 9212
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 3,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null,
+          "latencyMs": 7932
+        },
+        {
+          "type": "validation",
+          "step": 3,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:search-form:bsk:browsemux:20",
+      "taskId": "search-form",
+      "goal": "Search for Aurora and open the results page.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 24863,
+        "open": 580,
+        "arm": 24209,
+        "close": 74
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 23461,
+        "actionMs": 748
+      },
+      "usage": {
+        "prompt_tokens": 2344,
+        "completion_tokens": 95,
+        "total_tokens": 2439,
+        "cost": 0.00083463,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00083463,
+          "upstream_inference_prompt_cost": 0.00075008,
+          "upstream_inference_completions_cost": 0.00008455
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 4,
+      "modelRetries": 0,
+      "actions": 3,
+      "invalidActions": 1,
+      "browserCommands": 8,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/results?q=Aurora",
+      "finalTitle": "Search results",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query",
+          "confidence": 0.9,
+          "latencyMs": 6927
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "TYPE",
+          "target": "@e2",
+          "inputKey": "query"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 6230
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 3,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 5421
+        },
+        {
+          "type": "validation",
+          "step": 3,
+          "accepted": false,
+          "code": "NO_OBSERVED_PROGRESS"
+        },
+        {
+          "type": "decision",
+          "step": 4,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 4883
+        },
+        {
+          "type": "validation",
+          "step": 4,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e3",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:select-filter:bsk:direct:21",
+      "taskId": "select-filter",
+      "goal": "Filter the plans to Pro and open the filtered result.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 19752,
+        "open": 582,
+        "arm": 19086,
+        "close": 84
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 18621,
+        "actionMs": 465
+      },
+      "usage": {
+        "prompt_tokens": 1111,
+        "completion_tokens": 47,
+        "total_tokens": 1158,
+        "cost": 0.00039735,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00039735,
+          "upstream_inference_prompt_cost": 0.00035552,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 4493,
+      "finalUrl": "http://127.0.0.1:45036/filtered?plan=pro",
+      "finalTitle": "Filtered plans",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan",
+          "latencyMs": 9113
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "latencyMs": 9508
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:select-filter:bsk:browsemux:22",
+      "taskId": "select-filter",
+      "goal": "Filter the plans to Pro and open the filtered result.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 14517,
+        "open": 704,
+        "arm": 13734,
+        "close": 78
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 13297,
+        "actionMs": 438
+      },
+      "usage": {
+        "prompt_tokens": 1013,
+        "completion_tokens": 47,
+        "total_tokens": 1060,
+        "cost": 0.00036599,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00036599,
+          "upstream_inference_prompt_cost": 0.00032416,
+          "upstream_inference_completions_cost": 0.00004183
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/filtered?plan=pro",
+      "finalTitle": "Filtered plans",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan",
+          "confidence": 0.9,
+          "latencyMs": 7194
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "SELECT",
+          "target": "@e1",
+          "inputKey": "plan"
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 6103
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:two-step-journey:bsk:direct:23",
+      "taskId": "two-step-journey",
+      "goal": "Continue through the journey and finish it.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "direct",
+      "model": "deepseek/deepseek-chat",
+      "status": "error",
+      "reasonCode": "DIRECT_HARNESS_ERROR",
+      "reason": "terminated",
+      "success": false,
+      "wallMs": {
+        "total": 13034,
+        "open": 577,
+        "arm": 12370,
+        "close": 87
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 5487,
+        "actionMs": 350
+      },
+      "usage": {
+        "prompt_tokens": 337,
+        "completion_tokens": 24,
+        "total_tokens": 361,
+        "cost": 0.0001292,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0001292,
+          "upstream_inference_prompt_cost": 0.00010784,
+          "upstream_inference_completions_cost": 0.00002136
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 1,
+      "modelRetries": 0,
+      "actions": 1,
+      "invalidActions": 0,
+      "browserCommands": 4,
+      "observationChars": 1413,
+      "finalUrl": "http://127.0.0.1:45036/journey/step-2",
+      "finalTitle": "Journey step two",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "latencyMs": 5487
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        }
+      ]
+    },
+    {
+      "id": "3:two-step-journey:bsk:browsemux:24",
+      "taskId": "two-step-journey",
+      "goal": "Continue through the journey and finish it.",
+      "repeat": 3,
+      "backend": "bsk",
+      "arm": "browsemux",
+      "model": "deepseek/deepseek-chat",
+      "status": "success",
+      "reasonCode": "VERIFIED_SUCCESS",
+      "reason": "Configured success criteria matched the visible page.",
+      "success": true,
+      "wallMs": {
+        "total": 15728,
+        "open": 602,
+        "arm": 15016,
+        "close": 110
+      },
+      "timings": {
+        "observationMs": 0,
+        "decisionMs": 14354,
+        "actionMs": 663
+      },
+      "usage": {
+        "prompt_tokens": 804,
+        "completion_tokens": 48,
+        "total_tokens": 852,
+        "cost": 0.00030000000000000003,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00030000000000000003,
+          "upstream_inference_prompt_cost": 0.00025728000000000003,
+          "upstream_inference_completions_cost": 0.00004272
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "modelCalls": 2,
+      "modelRetries": 0,
+      "actions": 2,
+      "invalidActions": 0,
+      "browserCommands": 6,
+      "observationChars": 0,
+      "finalUrl": "http://127.0.0.1:45036/journey/complete",
+      "finalTitle": "Journey complete",
+      "error": null,
+      "events": [
+        {
+          "type": "decision",
+          "step": 1,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 8681
+        },
+        {
+          "type": "validation",
+          "step": 1,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e1",
+          "inputKey": null
+        },
+        {
+          "type": "decision",
+          "step": 2,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null,
+          "confidence": 0.9,
+          "latencyMs": 5673
+        },
+        {
+          "type": "validation",
+          "step": 2,
+          "accepted": true,
+          "operation": "CLICK",
+          "target": "@e2",
+          "inputKey": null
+        }
+      ]
+    }
+  ]
+}

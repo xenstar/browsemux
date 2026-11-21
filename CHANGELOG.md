@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Reorganized the README with a LobeHub-style hero, badge row, table of
+  contents, feature checklist, benchmark summary, contributing links, and
+  install-first guidance.
+- Added three-repeat direct-versus-mediated reruns and corrected the BSK
+  headline: the earlier BSK regression did not reproduce, while browser-startup
+  failures remain a tracked reliability risk.
+- Added a concise project-local `AGENTS.md` for Browsemux architecture, safety,
+  scope, and verification rules.
 - Added a portable `browsemux` harness skill and `browsemux skill install`
   support for Codex, shared agent roots, Claude Code, Cursor, OpenCode, and
   Hermes.
