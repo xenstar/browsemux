@@ -2,10 +2,11 @@
 
 # 🧭 Browsemux
 
-**A simpler, safer way for AI agents to control a browser.**
+### Give your AI agent a safer, cheaper way to use a browser.
 
-One small bridge between your agent, a decision model, and the browser tool it
-already uses.
+Browsemux sits between your AI agent and the browser tool it already uses. It
+handles the repetitive page reading, click decisions, validation, and success
+checks, then gives your agent one small result.
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/xenstar/browsemux/test.yml?branch=main&label=tests&style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/actions/workflows/test.yml)
 [![npm](https://img.shields.io/npm/v/browsemux?style=flat-square&labelColor=black)](https://www.npmjs.com/package/browsemux)
@@ -13,88 +14,96 @@ already uses.
 [![Node.js](https://img.shields.io/badge/node-%E2%89%A520-339933?style=flat-square&logo=node.js&logoColor=white&labelColor=black)](https://nodejs.org/)
 [![Status](https://img.shields.io/badge/status-early%20release-2563eb?style=flat-square&labelColor=black)](#project-status)
 
-[What it does](#what-browsemux-does) · [Why use it](#why-use-it) ·
-[Quick start](#quick-start) · [How it works](#how-it-works) ·
-[Benchmarks](#benchmarks) · [Documentation](#documentation)
+[How it works](#-how-it-works) · [Quick start](#-quick-start) ·
+[Benchmarks](#-benchmarks) · [Documentation](#-documentation)
 
 </div>
 
-## 💡 What Browsemux Does
+## ⚡ The Short Version
 
-AI agents can read a page, but deciding what to click next is difficult. Every
-click has to be correct, pages change quickly, and sending the whole browser
-state to a large model can be slow and expensive.
+An AI agent can say, **"Find the documentation link and open it."** The hard
+part is doing that reliably without making a large model inspect the whole page
+after every click.
 
-Browsemux gives the agent a smaller, safer browser loop:
-
-1. Your agent gives Browsemux a goal.
-2. Browsemux takes a compact snapshot of the page.
-3. A decision model proposes one action, such as "click this link".
-4. Local code checks that the action is valid and safe.
-5. The browser performs it.
-6. Browsemux observes the result and returns a short handoff.
+Browsemux turns that into a small, repeatable loop:
 
 ```text
-Your agent
-  -> Browsemux
-     -> decision model proposes one action
-     -> local validation checks it
-     -> agent-browser or BSK performs it
-     -> Browsemux observes the result
-  <- verified result, timings, usage, and next-step handoff
+Your AI agent
+  -> gives Browsemux a goal
+  -> Browsemux takes a small snapshot of the page
+  -> a decision model suggests one action
+  -> Browsemux checks the action
+  -> agent-browser or BSK performs it
+  -> Browsemux checks the result and returns a short report
 ```
 
-Browsemux does not imagine what is on the page. The model only gets references
-from the latest snapshot. If a button disappears or a reference becomes stale,
-Browsemux rejects the action before touching the browser.
+**The main AI still manages the task. Browsemux only handles the browser work.**
 
-## 🎯 Why Use It
+## ❓ Why Do I Need It?
 
-### For agent users
+Browser agents often do this:
 
-- Keep browser tasks bounded instead of letting an agent click indefinitely.
-- Use exact success checks instead of trusting a model that says "done".
-- Get one consistent result format across browser tools.
-- Keep API keys away from browser subprocesses.
-- Review what happened through action history, timings, token usage, and a
-  compact handoff.
+1. Send the page to a large AI model.
+2. Ask it what to click.
+3. Click.
+4. Send the new page back.
+5. Repeat.
 
-### For agent builders
+That works, but it can use many tokens, become slow, repeat the same action, or
+trust the model when it says "done" without proof.
 
-- Add browser control without giving the model a browser handle or code
-  execution.
-- Switch decision models through TypeSafe/JEV, OpenRouter, or an
-  OpenAI-compatible provider.
-- Switch between `agent-browser` and BSK without rebuilding the whole loop.
-- Reject stale targets, invalid roles, unsafe URLs, repeated actions, and
-  premature completion.
-- Use the same package from Codex, Claude Code, Cursor, OpenCode, Hermes, or any
-  harness that can run shell commands.
+Browsemux improves the workflow in five practical ways:
 
-### Use Browsemux when you need
+- **Less context:** the decision model sees a compact page snapshot, not the
+  entire conversation and page history.
+- **Fewer wasted steps:** repeated actions and stale page references are
+  rejected before they reach the browser.
+- **Clear completion:** a task is successful only when a URL or text check
+  passes, not because a model claims it finished.
+- **Safer execution:** the model returns structured data; it never gets a
+  browser handle, shell access, or permission to run code directly.
+- **Easy switching:** you can change the decision model or browser tool without
+  rewriting your agent workflow.
 
-- Safer, model-driven browser actions.
-- A smaller browser context for your agent.
-- A provider-neutral decision layer.
-- Explicit success, failure, and handoff states.
-- Repeatable browser workflows with a bounded number of steps.
+In simple terms, Browsemux is a supervisor. The main AI decides **what outcome
+it wants**. A smaller decision model suggests **the next click**. Browsemux
+checks whether that click makes sense before the browser performs it.
 
-### Do not use Browsemux as
+> Efficiency is a measured claim, not a promise. Model and network latency can
+> dominate a very short task. See the [benchmark results](#-benchmarks).
 
-- A replacement for Chrome, Edge, Playwright, or a browser automation tool.
-- A CAPTCHA solver or anti-bot bypass.
-- Permission to make payments or destructive account changes without human
-  approval.
-- A guarantee of lower latency. Model and network latency can dominate short
-  tasks.
+## 👥 Who Is It For?
+
+Browsemux is useful if you want to:
+
+- give Codex, Claude Code, Cursor, OpenCode, Hermes, or another shell-capable
+  agent a safer browser workflow;
+- use BSK or `agent-browser` without sending every browser step to your main
+  model;
+- try different decision models, including JEV and OpenRouter models;
+- get one consistent output format for successes, failures, and handoffs;
+- keep browser actions inside a clear step limit.
+
+It is **not** a replacement for Chrome, Edge, Playwright, or the browser tool
+you already use. It is the decision and safety layer between your agent and
+that tool.
+
+## 🧩 Four Words You Will See
+
+| Word | Plain meaning |
+| --- | --- |
+| **Agent / harness** | The AI program you are already using, such as Codex or Claude Code. |
+| **Browser backend** | The tool that actually moves the browser, such as `agent-browser` or BSK. |
+| **Decision provider** | The model that chooses the next browser action. |
+| **Proposal** | A small data object such as "click `@e4`"; it is not permission to act. |
 
 ## 🚀 Quick Start
 
 ### Requirements
 
 - Node.js 20 or newer
-- One browser backend: `agent-browser` or BSK
-- One API key for the model that chooses actions
+- `agent-browser` or BSK
+- A TypeSafe/JEV, OpenRouter, or OpenAI-compatible API key
 
 ### 1. Install Browsemux
 
@@ -103,19 +112,18 @@ npm install -g browsemux
 browsemux --version
 ```
 
-The npm package includes a portable harness skill, but installing npm packages
-does not modify another app's skill directory. Install that skill separately
-after setup:
+### 2. Add the Browsemux skill to your agents
 
 ```bash
 browsemux skill install --harness all
 ```
 
-Start a new harness session afterward so skill discovery refreshes.
+This teaches compatible agents to use Browsemux for bounded browser tasks. Start
+a new agent session afterward so the skill is discovered.
 
-### 2. Install a browser backend
+### 3. Install one browser backend
 
-For most first-time users:
+For most first-time users, `agent-browser` is the easiest option:
 
 ```bash
 npm install -g agent-browser
@@ -140,11 +148,11 @@ bsk --version
 bsk doctor
 ```
 
-BSK also needs its browser extension and a connected Chromium browser. See
+BSK also needs its browser extension and a connected Chrome or Edge window. See
 Tencent's
 [agent install guide](https://github.com/Tencent/BrowserSkill/blob/main/AGENT_INSTALL.md).
 
-### 3. Add a decision-provider key
+### 4. Add a decision-provider key
 
 PowerShell:
 
@@ -158,18 +166,19 @@ macOS or Linux:
 export TYPESAFE_API_KEY="<YOUR_TYPESAFE_API_KEY>"
 ```
 
-You can also use OpenRouter or an OpenAI-compatible provider. See
-[Providers](docs/providers.md).
+Prefer another model? See [Providers](docs/providers.md).
 
-### 4. Check the setup
+### 5. Check everything
 
 ```bash
 browsemux doctor
 ```
 
-The result should show `"ready": true`.
+The result should include `"ready": true`.
 
-### 5. Run your first browser task
+### 6. Run a browser task
+
+macOS or Linux:
 
 ```bash
 browsemux run \
@@ -181,94 +190,102 @@ browsemux run \
   --max-steps 4
 ```
 
-PowerShell users can put the full command on one line:
+Windows PowerShell:
 
 ```powershell
 browsemux run --backend agent-browser --provider typesafe --url https://example.com --goal "Open the Learn more documentation link" --success-url-contains iana.org --max-steps 4
 ```
 
-A verified result contains `"status": "success"` and the final page evidence.
+You should receive one JSON result. A real success includes
+`"status": "success"` plus evidence from the final page.
 
-## 🧩 Supported Tools
+## 🧠 How It Works
+
+Here is the complete flow:
+
+1. Your agent gives Browsemux a goal and success rule.
+2. Browsemux takes a compact snapshot of the current page.
+3. The decision model receives the goal and snapshot.
+4. The model returns a small proposal, such as:
+
+   ```json
+   {
+     "operation": "CLICK",
+     "target": "@e4",
+     "confidence": 0.93
+   }
+   ```
+
+5. Browsemux checks the proposal against local rules.
+6. Only a valid action reaches `agent-browser` or BSK.
+7. Browsemux observes the result and repeats until success, a blocker, or the
+   step limit.
+
+### Why doesn't the model control the browser directly?
+
+Because a model can be wrong, and page content can contain misleading
+instructions. Letting it control the browser directly would turn a mistaken
+prediction into a real click.
+
+Browsemux treats the model output as untrusted data. It checks that the target
+exists in the latest snapshot, has the correct role, uses a supported
+operation, does not repeat without progress, and passes the configured success
+criteria.
+
+This is also why the decision model does not need a browser handle or the
+ability to execute JavaScript.
+
+## 🌐 Supported Tools
 
 ### Browser backends
 
 | Backend | Best for | Notes |
 | --- | --- | --- |
-| `agent-browser` | A clean automated browser session | Recommended first choice |
-| BSK / Tencent Agent Window | Controlling a Chromium window used by an agent | Requires the BSK extension |
+| `agent-browser` | Isolated browser tasks and a simple first setup | Recommended first choice |
+| BSK / Tencent Agent Window | Using a connected Chrome or Edge window | Requires the BSK extension |
 
 ### Decision providers
 
 | Provider | Use it when |
 | --- | --- |
-| TypeSafe / JEV | You want a compact decision-focused model |
-| OpenRouter Decisions | You want to choose a supported OpenRouter model |
-| OpenAI-compatible | You have another compatible endpoint and JSON output |
+| TypeSafe / JEV | You want a compact JEV-based decision model |
+| OpenRouter Decisions | You want to choose a supported OpenRouter decision model |
+| OpenAI-compatible | You have another compatible endpoint that returns JSON |
 
-The decision model does not control the browser directly. It returns typed
-data. Browsemux validates that data before any browser command runs.
-
-## 🧠 How It Works
-
-### The model proposes, local code decides
-
-The decision model returns a small proposal:
-
-```json
-{
-  "operation": "CLICK",
-  "target": "@e4",
-  "confidence": 0.93
-}
-```
-
-Browsemux then checks:
-
-- Does the target exist in the latest snapshot?
-- Does the target have a compatible role?
-- Is the operation supported?
-- Is a navigation URL safe?
-- Is this action repeating without progress?
-- Do the configured success checks actually pass?
-
-Only then does Browsemux send the action to `agent-browser` or BSK.
-
-### Statuses are explicit
-
-| Status | Meaning |
-| --- | --- |
-| `success` | The deterministic success check passed |
-| `completed-unverified` | A model claimed completion without proof |
-| `blocked` | A human decision or blocker is required |
-| `effect-unknown` | A write may have happened; do not blindly retry |
-| `limit` | The step or recovery budget ended |
-| `error` | Setup, provider, browser, or proposal failure |
-
-Exit codes are `0` success, `2` completed-unverified, `3` blocked, `4`
-effect-unknown, `5` limit, and `1` error.
+You can change the provider or backend without changing the task goal. See
+[Providers](docs/providers.md) and [Backends](docs/backends.md).
 
 ## 📊 Benchmarks
 
-Latest controlled three-repeat run on 2026-11-21:
+The repo includes a repeatable A/B test that compares **direct agent control**
+with **the same browser behind Browsemux**.
 
-| Backend | Workflow | Verified | Median wall time | Cost per verified task |
-| --- | --- | ---: | ---: | ---: |
-| `agent-browser` | Direct agent control | 12/12 | 12,500 ms | $0.000331 |
-| `agent-browser` | Through Browsemux | 11/12 | 11,558 ms | $0.000294 |
-| BSK | Direct agent control | 11/12 | 15,532 ms | $0.000404 |
-| BSK | Through Browsemux | 11/12 | 13,200 ms | $0.000401 |
+Latest controlled run on 2026-11-21. Each backend and workflow was recorded
+three times:
 
-In this fixture run, Browsemux was faster and cheaper for `agent-browser`.
-The BSK result was mixed: faster, but not more reliable or meaningfully cheaper.
-These are engineering measurements, not universal claims.
+| Browser | Path | Verified | Median time | Input tokens | Cost per verified task |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `agent-browser` | Direct agent | 12/12 | 12,500 ms | 910.5 | $0.000331 |
+| `agent-browser` | Through Browsemux | 11/12 | 11,558 ms | 832.5 | $0.000294 |
+| BSK | Direct agent | 11/12 | 15,532 ms | 993.5 | $0.000404 |
+| BSK | Through Browsemux | 11/12 | 13,200 ms | 902.5 | $0.000401 |
 
-- [Full methodology and raw results](docs/benchmarks.md)
+What this run showed:
+
+- **agent-browser:** Browsemux was 7.5% faster, used 8.6% fewer input tokens, and
+  cost 10.9% less per verified task. One Browsemux run failed during browser
+  startup before a model call, so verified success was 11/12 instead of 12/12.
+- **BSK:** Browsemux was 15.0% faster, used 9.2% fewer input tokens, and had
+  approximately the same cost per verified task. Both paths verified 11/12.
+- **Overall:** the efficiency signal is positive, but the reliability result is
+  mixed. These fixture results are evidence, not a universal guarantee.
+
+- [Read the method and all results](docs/benchmarks.md)
 - [Reproduce the benchmark](bench/README.md)
 
-## 📦 Output
+## ✅ What a Result Looks Like
 
-By default, Browsemux returns one JSON result. Add `--jsonl` to stream events:
+Browsemux returns one JSON result by default. Add `--jsonl` to stream events:
 
 ```text
 start
@@ -279,19 +296,25 @@ action
 result
 ```
 
-The result includes:
+The result contains the status, browser and provider, action history, step
+count, timings, token usage, cost when available, and a compact handoff for the
+parent agent.
 
-- Status and reason
-- Browser backend and decision provider
-- Action and step counts
-- Observation, decision, and action timings
-- Provider usage and cost when available
-- Bounded action history
-- A compact handoff for the parent agent
+| Status | What it means |
+| --- | --- |
+| `success` | The configured URL or text check passed |
+| `completed-unverified` | The model claimed completion, but evidence is missing |
+| `blocked` | A human decision or external blocker is required |
+| `effect-unknown` | A write may have happened; do not blindly retry |
+| `limit` | The step or recovery budget ended |
+| `error` | Setup, provider, browser, or proposal failure |
 
-## 🔐 Safety
+Exit codes are `0` for success, `2` for completed-unverified, `3` for blocked,
+`4` for effect-unknown, `5` for limit, and `1` for error.
 
-- The model never receives a browser handle.
+## 🔐 Safety and Limits
+
+- The decision model never receives a browser handle.
 - The model cannot execute JavaScript or shell commands.
 - Actions must reference the latest page snapshot.
 - Only HTTP and HTTPS navigation is accepted.
@@ -300,7 +323,8 @@ The result includes:
 - Secret input values are redacted from provider metadata.
 
 Human approval is still required for payments, uploads, MFA, CAPTCHA, account
-deletion, and other destructive actions.
+deletion, and other destructive actions. Browsemux is also not designed to
+bypass anti-bot systems.
 
 See [SECURITY.md](SECURITY.md) for the full trust model.
 
@@ -309,7 +333,7 @@ See [SECURITY.md](SECURITY.md) for the full trust model.
 | Guide | What it covers |
 | --- | --- |
 | [Installation](docs/installation.md) | Complete setup, updates, and troubleshooting |
-| [Harness skills](docs/harness-skills.md) | Codex, Claude Code, Cursor, OpenCode, and Hermes routing |
+| [Harness skills](docs/harness-skills.md) | Codex, Claude Code, Cursor, OpenCode, and Hermes |
 | [Backends](docs/backends.md) | `agent-browser` and BSK behavior |
 | [Providers](docs/providers.md) | TypeSafe, OpenRouter, and compatible endpoints |
 | [Architecture](docs/architecture.md) | Control flow and trust boundaries |
@@ -324,8 +348,8 @@ npm run check
 npm run bench:smoke
 ```
 
-The project uses no runtime dependencies. Browser adapters must fail closed,
-providers must return typed proposals, and public performance claims must stay
+The project has no runtime dependencies. Browser adapters fail closed,
+providers return structured proposals, and public performance claims must stay
 within the benchmark evidence.
 
 ## 🤝 Contributing
@@ -345,9 +369,10 @@ For behavior changes, include tests and update the relevant public claim.
 - [Privacy](PRIVACY.md)
 - [Changelog](CHANGELOG.md)
 
-## 🧱 Library Use
+<details>
+<summary><strong>Use Browsemux from JavaScript</strong></summary>
 
-The CLI covers normal use. Advanced users can embed the same loop:
+The CLI covers normal use. Advanced users can embed the same bounded loop:
 
 ```js
 import {
@@ -376,10 +401,12 @@ const result = await runLoop({
 });
 ```
 
+</details>
+
 <a id="project-status"></a>
 ## 🚦 Project Status
 
-Browsemux is an early public release. The current support boundary is:
+Browsemux is an early public release. The supported release includes:
 
 - `agent-browser`
 - BSK / Tencent Agent Window
