@@ -2,120 +2,120 @@
 
 # 🧭 Browsemux
 
-**Route browser decisions. Keep deterministic control.**
+**A simpler, safer way for AI agents to control a browser.**
 
-A bounded decision bridge between agent harnesses and browser backends.
+One small bridge between your agent, a decision model, and the browser tool it
+already uses.
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/xenstar/browsemux/test.yml?branch=main&label=tests&style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/actions/workflows/test.yml)
+[![npm](https://img.shields.io/npm/v/browsemux?style=flat-square&labelColor=black)](https://www.npmjs.com/package/browsemux)
 [![License](https://img.shields.io/github/license/xenstar/browsemux?style=flat-square&labelColor=black)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%E2%89%A520-339933?style=flat-square&logo=node.js&logoColor=white&labelColor=black)](https://nodejs.org/)
-[![Status](https://img.shields.io/badge/status-pre--release-f59e0b?style=flat-square&labelColor=black)](#project-status)
-[![Stars](https://img.shields.io/github/stars/xenstar/browsemux?style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/stargazers)
-[![Forks](https://img.shields.io/github/forks/xenstar/browsemux?style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/network/members)
-[![Issues](https://img.shields.io/github/issues/xenstar/browsemux?style=flat-square&labelColor=black)](https://github.com/xenstar/browsemux/issues)
+[![Status](https://img.shields.io/badge/status-early%20release-2563eb?style=flat-square&labelColor=black)](#project-status)
 
-[Features](#features) · [Install](#quick-install) · [Quick start](#quick-start) ·
-[Benchmarks](#benchmarks) · [Documentation](#documentation) ·
-[Contributing](#contributing)
+[What it does](#what-browsemux-does) · [Why use it](#why-use-it) ·
+[Quick start](#quick-start) · [How it works](#how-it-works) ·
+[Benchmarks](#benchmarks) · [Documentation](#documentation)
 
 </div>
 
-## 📖 Table of Contents
+## 💡 What Browsemux Does
 
-- [✨ Features](#features)
-- [🚦 Project Status](#project-status)
-- [🚀 Quick Install](#quick-install)
-- [⚡ Quick Start](#quick-start)
-- [📊 Benchmarks](#benchmarks)
-- [🧰 Configuration](#configuration)
-- [📦 Output](#output)
-- [🔐 Safety](#safety)
-- [📚 Documentation](#documentation)
-- [🧱 Library](#library)
-- [🛠️ Development](#development)
-- [🤝 Contributing](#contributing)
-- [🔗 Policies](#policies)
+AI agents can read a page, but deciding what to click next is difficult. Every
+click has to be correct, pages change quickly, and sending the whole browser
+state to a large model can be slow and expensive.
 
-<a id="features"></a>
-## ✨ Features
+Browsemux gives the agent a smaller, safer browser loop:
 
-- [x] 🧭 **Bounded browser loop**: Observe, decide, validate, act, re-observe, and stop within a strict budget.
-- [x] 🛡️ **Deterministic control**: Typed model intent is checked against targets, roles, inputs, URLs, repetition, and completion criteria.
-- [x] 🔌 **Swappable browser backends**: Use `agent-browser` for isolated sessions or BSK for an existing Agent Window.
-- [x] 🧠 **Swappable decision providers**: Use TypeSafe/JEV, OpenRouter Decisions, or compatible chat-completions providers.
-- [x] 🧩 **Harness routing skill**: Install one portable skill for Codex, Claude Code, Cursor, OpenCode, and Hermes.
-- [x] 📦 **Dependency-free package**: The runtime uses Node.js APIs without a browser framework or HTTP SDK.
-- [x] 📊 **Reproducible benchmarks**: Compare direct control with Browsemux using fixed tasks, one model, deterministic checks, and raw records.
-- [x] 🚦 **Explicit failure states**: Distinguish verified success, unverified completion, limits, blockers, and unknown action effects.
+1. Your agent gives Browsemux a goal.
+2. Browsemux takes a compact snapshot of the page.
+3. A decision model proposes one action, such as "click this link".
+4. Local code checks that the action is valid and safe.
+5. The browser performs it.
+6. Browsemux observes the result and returns a short handoff.
 
 ```text
-Harness
+Your agent
   -> Browsemux
-     -> typed decision provider
-     -> local proposal validation
-     -> agent-browser or BSK
-     -> settled observation
-  <- compact evidence, usage, timings, and handoff
+     -> decision model proposes one action
+     -> local validation checks it
+     -> agent-browser or BSK performs it
+     -> Browsemux observes the result
+  <- verified result, timings, usage, and next-step handoff
 ```
 
-**Core contract:** the model proposes typed intent; code validates and executes
-it. The model never receives a browser handle or executes code.
+Browsemux does not imagine what is on the page. The model only gets references
+from the latest snapshot. If a button disappears or a reference becomes stale,
+Browsemux rejects the action before touching the browser.
 
-<a id="project-status"></a>
-## 🚦 Project Status
+## 🎯 Why Use It
 
-Browsemux is a **pre-release** project. The current supported installation path
-is directly from GitHub.
+### For agent users
 
-Supported browser backends:
+- Keep browser tasks bounded instead of letting an agent click indefinitely.
+- Use exact success checks instead of trusting a model that says "done".
+- Get one consistent result format across browser tools.
+- Keep API keys away from browser subprocesses.
+- Review what happened through action history, timings, token usage, and a
+  compact handoff.
 
-- `agent-browser`
-- BSK / Tencent Agent Window
+### For agent builders
 
-Supported decision providers:
+- Add browser control without giving the model a browser handle or code
+  execution.
+- Switch decision models through TypeSafe/JEV, OpenRouter, or an
+  OpenAI-compatible provider.
+- Switch between `agent-browser` and BSK without rebuilding the whole loop.
+- Reject stale targets, invalid roles, unsafe URLs, repeated actions, and
+  premature completion.
+- Use the same package from Codex, Claude Code, Cursor, OpenCode, Hermes, or any
+  harness that can run shell commands.
 
-- TypeSafe System One / JEV
-- OpenRouter Decisions
-- OpenAI-compatible chat completions with JSON output
+### Use Browsemux when you need
 
-Browser Use, Playwright, Stagehand, Skyvern, and other frameworks remain
-outside the initial scope.
+- Safer, model-driven browser actions.
+- A smaller browser context for your agent.
+- A provider-neutral decision layer.
+- Explicit success, failure, and handoff states.
+- Repeatable browser workflows with a bounded number of steps.
 
-<a id="quick-install"></a>
-## 🚀 Quick Install
+### Do not use Browsemux as
+
+- A replacement for Chrome, Edge, Playwright, or a browser automation tool.
+- A CAPTCHA solver or anti-bot bypass.
+- Permission to make payments or destructive account changes without human
+  approval.
+- A guarantee of lower latency. Model and network latency can dominate short
+  tasks.
+
+## 🚀 Quick Start
+
+### Requirements
+
+- Node.js 20 or newer
+- One browser backend: `agent-browser` or BSK
+- One API key for the model that chooses actions
 
 ### 1. Install Browsemux
-
-Recommended global install:
 
 ```bash
 npm install -g browsemux
 browsemux --version
 ```
 
-Install from a local clone:
+The npm package includes a portable harness skill, but installing npm packages
+does not modify another app's skill directory. Install that skill separately
+after setup:
 
 ```bash
-git clone https://github.com/xenstar/browsemux.git
-cd browsemux
-npm install
-npm link
-browsemux --version
+browsemux skill install --harness all
 ```
 
-The npm package ships the Browsemux skill, but `npm install` does not modify
-harness skill directories. Run the skill installation step once after each
-install or update.
-
-Requirements:
-
-- Node.js 20 or newer
-- One supported browser backend
-- One decision-provider API key
+Start a new harness session afterward so skill discovery refreshes.
 
 ### 2. Install a browser backend
 
-Recommended for first-time users:
+For most first-time users:
 
 ```bash
 npm install -g agent-browser
@@ -140,11 +140,11 @@ bsk --version
 bsk doctor
 ```
 
-BSK also requires its browser extension and a connected Chromium browser. See
-Tencent's official
+BSK also needs its browser extension and a connected Chromium browser. See
+Tencent's
 [agent install guide](https://github.com/Tencent/BrowserSkill/blob/main/AGENT_INSTALL.md).
 
-### 3. Set a provider key
+### 3. Add a decision-provider key
 
 PowerShell:
 
@@ -158,63 +158,20 @@ macOS or Linux:
 export TYPESAFE_API_KEY="<YOUR_TYPESAFE_API_KEY>"
 ```
 
-Verify the local setup:
+You can also use OpenRouter or an OpenAI-compatible provider. See
+[Providers](docs/providers.md).
+
+### 4. Check the setup
 
 ```bash
 browsemux doctor
 ```
 
-`doctor` checks CLI availability and whether the expected provider environment
-variable is present. It does not validate API credit or the BSK extension state.
+The result should show `"ready": true`.
 
-### 4. Install the harness routing skill
-
-Install the Browsemux skill into the supported harness skill directories:
+### 5. Run your first browser task
 
 ```bash
-browsemux skill install --harness all
-```
-
-This is an explicit setup step, not an npm lifecycle side effect. It avoids
-writing into another tool's home directory during package installation.
-
-The skill tells harness agents to use Browsemux for bounded browser work instead
-of driving `agent-browser` or BSK one command at a time. Direct browser commands
-remain reserved for setup, visual inspection, exploratory debugging, and human
-takeover.
-
-Start a new harness session after installation so skill discovery refreshes.
-See [Harness skills](docs/harness-skills.md) for per-harness paths, project
-installation, updates, and limitations.
-
-> Replace every `<ANGLE_BRACKET_VALUE>` before running an example. See
-> [Installation](docs/installation.md) for provider, BSK, update, and
-> troubleshooting instructions.
-
-<a id="quick-start"></a>
-## ⚡ Quick Start
-
-### agent-browser + JEV
-
-PowerShell:
-
-```powershell
-$env:TYPESAFE_API_KEY = "<YOUR_TYPESAFE_API_KEY>"
-
-browsemux run `
-  --backend agent-browser `
-  --provider typesafe `
-  --url https://example.com `
-  --goal "Open the Learn more documentation link" `
-  --success-url-contains iana.org `
-  --max-steps 4
-```
-
-macOS or Linux:
-
-```bash
-export TYPESAFE_API_KEY="<YOUR_TYPESAFE_API_KEY>"
-
 browsemux run \
   --backend agent-browser \
   --provider typesafe \
@@ -224,140 +181,94 @@ browsemux run \
   --max-steps 4
 ```
 
-### agent-browser + OpenRouter Decisions
+PowerShell users can put the full command on one line:
 
-```bash
-export OPENROUTER_API_KEY="<YOUR_OPENROUTER_API_KEY>"
-
-browsemux run \
-  --provider openrouter \
-  --model "<OPENROUTER_DECISION_MODEL_SLUG>" \
-  --url https://example.com \
-  --goal "Open the Learn more documentation link" \
-  --success-url-contains iana.org
+```powershell
+browsemux run --backend agent-browser --provider typesafe --url https://example.com --goal "Open the Learn more documentation link" --success-url-contains iana.org --max-steps 4
 ```
 
-### BSK + OpenRouter Decisions
+A verified result contains `"status": "success"` and the final page evidence.
 
-```bash
-export OPENROUTER_API_KEY="<YOUR_OPENROUTER_API_KEY>"
+## 🧩 Supported Tools
 
-browsemux run \
-  --backend bsk \
-  --provider openrouter \
-  --model "<OPENROUTER_DECISION_MODEL_SLUG>" \
-  --attach \
-  --bsk-scope "<YOUR_AGENT_WINDOW_SCOPE>" \
-  --goal "Find the latest invoice"
-```
+### Browser backends
 
-BSK sessions close by default. Use `--keep-open` only when a human handoff is
-explicitly required.
+| Backend | Best for | Notes |
+| --- | --- | --- |
+| `agent-browser` | A clean automated browser session | Recommended first choice |
+| BSK / Tencent Agent Window | Controlling a Chromium window used by an agent | Requires the BSK extension |
 
-<a id="benchmarks"></a>
-## 📊 Benchmarks
+### Decision providers
 
-Latest three-repeat controlled rerun on 2026-11-21:
+| Provider | Use it when |
+| --- | --- |
+| TypeSafe / JEV | You want a compact decision-focused model |
+| OpenRouter Decisions | You want to choose a supported OpenRouter model |
+| OpenAI-compatible | You have another compatible endpoint and JSON output |
 
-| Backend | Arm | Verified | Median wall | Median input tokens | Cost / verified task |
-| --- | --- | ---: | ---: | ---: | ---: |
-| `agent-browser` | direct | 12/12 | 12,500 ms | 910.5 | $0.000331 |
-| `agent-browser` | Browsemux | 11/12 | 11,558 ms | 832.5 | $0.000294 |
-| BSK | direct | 11/12 | 15,532 ms | 993.5 | $0.000404 |
-| BSK | Browsemux | 11/12 | 13,200 ms | 902.5 | $0.000401 |
+The decision model does not control the browser directly. It returns typed
+data. Browsemux validates that data before any browser command runs.
 
-| Backend | Success delta | Wall change | Input-token change | Cost / verified change |
-| --- | ---: | ---: | ---: | ---: |
-| `agent-browser` | -8.3 pp | -7.5% | -8.6% | -10.9% |
-| BSK | 0.0 pp | -15.0% | -9.2% | -0.7% |
+## 🧠 How It Works
 
-The efficiency gains are real in this fixture run, but the reliability result
-is mixed. `agent-browser` recorded one failure: a Browsemux startup failure
-before any model call. BSK recorded two failures: one direct and one Browsemux.
-The earlier two-repeat BSK regression did not reproduce, so Browsemux does not
-currently claim a stable cost advantage on every BSK workflow.
+### The model proposes, local code decides
 
-- [Benchmark methodology and results](docs/benchmarks.md)
-- [Reproduce the direct-versus-mediated benchmark](bench/README.md)
-
-Decision latency dominates these short tasks. Treat the results as controlled
-engineering evidence, not universal browser-agent rankings.
-
-<a id="configuration"></a>
-## 🧰 Configuration
-
-### Supplied inputs
-
-Decision models select supplied values; they do not invent credentials or form
-content.
-
-```bash
-browsemux run \
-  --url https://example.com/search \
-  --goal "Search for Browsemux" \
-  --inputs-json '{"text":{"query":"Browsemux"},"keys":{"submit":"Enter"}}'
-```
-
-Input groups:
-
-- `text`: `TYPE`
-- `select`: `SELECT`
-- `keys`: `PRESS`
-- `urls`: `NAVIGATE`
-
-Mark a value as secret when supplying metadata:
+The decision model returns a small proposal:
 
 ```json
 {
-  "text": {
-    "password": {
-      "value": "<ACCOUNT_PASSWORD>",
-      "label": "Account password",
-      "secret": true
-    }
-  }
+  "operation": "CLICK",
+  "target": "@e4",
+  "confidence": 0.93
 }
 ```
 
-Secret values are redacted from provider metadata.
+Browsemux then checks:
 
-### Actions
+- Does the target exist in the latest snapshot?
+- Does the target have a compatible role?
+- Is the operation supported?
+- Is a navigation URL safe?
+- Is this action repeating without progress?
+- Do the configured success checks actually pass?
 
-```text
-CLICK
-TYPE
-SELECT
-PRESS
-SCROLL_UP
-SCROLL_DOWN
-BACK
-WAIT
-NAVIGATE
-DONE
-BLOCKED
-```
+Only then does Browsemux send the action to `agent-browser` or BSK.
 
-`CLICK`, `TYPE`, and `SELECT` require a target present in the latest snapshot.
-Invalid roles and stale refs are rejected before backend dispatch.
+### Statuses are explicit
 
-### Completion
+| Status | Meaning |
+| --- | --- |
+| `success` | The deterministic success check passed |
+| `completed-unverified` | A model claimed completion without proof |
+| `blocked` | A human decision or blocker is required |
+| `effect-unknown` | A write may have happened; do not blindly retry |
+| `limit` | The step or recovery budget ended |
+| `error` | Setup, provider, browser, or proposal failure |
 
-`DONE` from a model is not treated as proof. Without deterministic checks, the
-result is `completed-unverified`.
+Exit codes are `0` success, `2` completed-unverified, `3` blocked, `4`
+effect-unknown, `5` limit, and `1` error.
 
-Use one or both deterministic checks:
+## 📊 Benchmarks
 
-```bash
---success-url-contains <URL_FRAGMENT>
---success-text-contains "<VISIBLE_TEXT>"
-```
+Latest controlled three-repeat run on 2026-11-21:
 
-Only matching checks produce `status: "success"`.
+| Backend | Workflow | Verified | Median wall time | Cost per verified task |
+| --- | --- | ---: | ---: | ---: |
+| `agent-browser` | Direct agent control | 12/12 | 12,500 ms | $0.000331 |
+| `agent-browser` | Through Browsemux | 11/12 | 11,558 ms | $0.000294 |
+| BSK | Direct agent control | 11/12 | 15,532 ms | $0.000404 |
+| BSK | Through Browsemux | 11/12 | 13,200 ms | $0.000401 |
 
-<a id="output"></a>
+In this fixture run, Browsemux was faster and cheaper for `agent-browser`.
+The BSK result was mixed: faster, but not more reliable or meaningfully cheaper.
+These are engineering measurements, not universal claims.
+
+- [Full methodology and raw results](docs/benchmarks.md)
+- [Reproduce the benchmark](bench/README.md)
+
 ## 📦 Output
 
-Default output is one JSON result. `--jsonl` streams:
+By default, Browsemux returns one JSON result. Add `--jsonl` to stream events:
 
 ```text
 start
@@ -368,80 +279,75 @@ action
 result
 ```
 
-The result contains:
+The result includes:
 
-- final status and reason
-- backend and provider
-- action count and step count
-- observation, decision, and action timings
-- provider usage when available
-- bounded action history
-- compact handoff for the parent harness
+- Status and reason
+- Browser backend and decision provider
+- Action and step counts
+- Observation, decision, and action timings
+- Provider usage and cost when available
+- Bounded action history
+- A compact handoff for the parent agent
 
-Exit codes:
-
-| Code | Status | Meaning |
-| ---: | --- | --- |
-| `0` | `success` | Deterministic success criteria matched. |
-| `2` | `completed-unverified` | The model claimed completion, but no success check proved it. |
-| `3` | `blocked` | The browser or model reported a required human decision or blocker. |
-| `4` | `effect-unknown` | A write action may have executed; do not replay it blindly. |
-| `5` | `limit` | The step or recovery budget ended before completion. |
-| `1` | `error` | Setup, provider, browser, or proposal failure. |
-
-`completed-unverified` is intentionally nonzero so scripts do not treat an
-unverified model claim as success.
-
-<a id="safety"></a>
 ## 🔐 Safety
 
-- Providers cannot execute browser commands or JavaScript.
-- Targets must exist in the latest observation.
-- Operation-to-role validation happens locally.
-- Navigation accepts only HTTP and HTTPS.
-- Repeated semantic actions are bounded.
-- Sensitive supplied values are redacted from provider metadata.
+- The model never receives a browser handle.
+- The model cannot execute JavaScript or shell commands.
+- Actions must reference the latest page snapshot.
+- Only HTTP and HTTPS navigation is accepted.
+- Repeated actions are bounded.
 - Provider API keys are removed from browser subprocess environments.
-- Human approval is still required for payments, destructive account actions,
-  uploads, MFA, and CAPTCHA.
+- Secret input values are redacted from provider metadata.
 
-See [SECURITY.md](SECURITY.md) for the trust boundary.
+Human approval is still required for payments, uploads, MFA, CAPTCHA, account
+deletion, and other destructive actions.
 
-<a id="documentation"></a>
+See [SECURITY.md](SECURITY.md) for the full trust model.
+
 ## 📚 Documentation
 
-| Guide | Purpose |
+| Guide | What it covers |
 | --- | --- |
-| [Installation](docs/installation.md) | End-to-end setup, verification, updates, and troubleshooting |
-| [Harness skills](docs/harness-skills.md) | Routing guidance for Codex, Claude Code, Cursor, OpenCode, and Hermes |
+| [Installation](docs/installation.md) | Complete setup, updates, and troubleshooting |
+| [Harness skills](docs/harness-skills.md) | Codex, Claude Code, Cursor, OpenCode, and Hermes routing |
 | [Backends](docs/backends.md) | `agent-browser` and BSK behavior |
-| [Providers](docs/providers.md) | TypeSafe, OpenRouter, and OpenAI-compatible configuration |
+| [Providers](docs/providers.md) | TypeSafe, OpenRouter, and compatible endpoints |
 | [Architecture](docs/architecture.md) | Control flow and trust boundaries |
 | [Validation](docs/validation.md) | Tested environments and live smoke evidence |
 | [Benchmarks](docs/benchmarks.md) | Method, measurements, and limitations |
 
-<a id="contributing"></a>
+## 🛠️ Development
+
+```bash
+npm test
+npm run check
+npm run bench:smoke
+```
+
+The project uses no runtime dependencies. Browser adapters must fail closed,
+providers must return typed proposals, and public performance claims must stay
+within the benchmark evidence.
+
 ## 🤝 Contributing
 
-Contributions are welcome through [issues](https://github.com/xenstar/browsemux/issues)
-and focused pull requests. Keep backend adapters fail-closed, keep provider
-outputs typed, add tests for behavior changes, and update public claims when the
-benchmark evidence changes.
+Contributions are welcome through
+[issues](https://github.com/xenstar/browsemux/issues) and focused pull requests.
+For behavior changes, include tests and update the relevant public claim.
 
 [![Contributors](https://contrib.rocks/image?repo=xenstar/browsemux)](https://github.com/xenstar/browsemux/graphs/contributors)
 
-<a id="policies"></a>
-## 🤝 Project Policies
+## 🔗 Policies
 
-- [License](LICENSE): MIT
+- [MIT License](LICENSE)
 - [Contributing](CONTRIBUTING.md)
-- [Code of conduct](CODE_OF_CONDUCT.md)
-- [Security policy](SECURITY.md)
-- [Privacy and data handling](PRIVACY.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security](SECURITY.md)
+- [Privacy](PRIVACY.md)
 - [Changelog](CHANGELOG.md)
 
-<a id="library"></a>
-## 🧱 Library
+## 🧱 Library Use
+
+The CLI covers normal use. Advanced users can embed the same loop:
 
 ```js
 import {
@@ -470,20 +376,16 @@ const result = await runLoop({
 });
 ```
 
-<a id="development"></a>
-## 🛠️ Development
+<a id="project-status"></a>
+## 🚦 Project Status
 
-```bash
-npm test
-npm run check
-npm run bench:smoke
-```
+Browsemux is an early public release. The current support boundary is:
 
-The initial release is intentionally small. Backend adapters must fail closed,
-and provider adapters must return typed proposals rather than browser commands.
+- `agent-browser`
+- BSK / Tencent Agent Window
+- TypeSafe/JEV
+- OpenRouter Decisions
+- OpenAI-compatible JSON output
 
-## 🏷️ Name
-
-**Browsemux** means multiplexing one harness workflow across swappable browser
-backends and decision providers without giving either one direct authority over
-the browser.
+Playwright, Browser Use, Stagehand, Skyvern, and other backends are not part of
+the current release.

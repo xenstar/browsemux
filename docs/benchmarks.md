@@ -285,8 +285,8 @@ classification modes.
 
 | Metric | Value |
 | --- | ---: |
-| Packed package | approximately 46.5 KB |
-| Unpacked package | approximately 167.2 KB |
+| Packed package | approximately 46.1 KB |
+| Unpacked package | approximately 164.8 KB |
 | Packaged files | 39 |
 | Runtime dependencies | 0 |
 

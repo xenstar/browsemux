@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 - 2026-11-21
+
+- Rewrote the README for first-time users, with a plain-language explanation
+  of what Browsemux does, why it is useful, how to run it, and what it does not
+  replace.
+- Removed the pre-release GitHub installation wording in favor of the public
+  npm package.
+
 ## 0.1.0 - 2026-11-21
 
 - Added a portable `browsemux` harness skill and `browsemux skill install`
