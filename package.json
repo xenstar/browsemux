@@ -36,7 +36,9 @@
   "scripts": {
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage",
-    "check": "node --check bin/browsemux.mjs && node --check src/cli.mjs",
+    "bench": "node bench/runner.mjs",
+    "bench:smoke": "node bench/runner.mjs --tasks open-link --backends agent-browser --repeats 1 --model deepseek/deepseek-chat",
+    "check": "node --check bin/browsemux.mjs && node --check src/cli.mjs && node --check bench/fixture-server.mjs && node --check bench/direct-harness.mjs && node --check bench/report.mjs && node --check bench/runner.mjs",
     "prepublishOnly": "npm test && npm run check"
   },
   "keywords": [

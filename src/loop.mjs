@@ -50,6 +50,9 @@ export async function runLoop({
   let needsObservation = !initialObservation;
   let recovery;
   let invalidAttempts = 0;
+  let lastExecutedSignature = null;
+  let lastExecutedTarget = null;
+  let lastExecutedState = null;
   let status = 'limit';
   let reasonCode = 'MAX_STEPS';
   let reason;
@@ -64,6 +67,9 @@ export async function runLoop({
         observation = await browser.snapshot({ signal });
         timings.observationMs += elapsed(observeStarted);
         needsObservation = false;
+        if (lastExecutedSignature && lastExecutedState === null) {
+          lastExecutedState = observationIdentity(observation);
+        }
         emit(onEvent, {
           type: 'observation',
           step,
@@ -84,6 +90,7 @@ export async function runLoop({
       const decisionStarted = nowMs();
       const decision = await provider.decide({
         goal,
+        successCriteria,
         observation,
         inputs,
         history: history.slice(-historyLimit),
@@ -104,6 +111,40 @@ export async function runLoop({
 
       const proposedOperation = String(decision?.proposal?.operation ?? '').toUpperCase();
       if (proposedOperation === 'DONE') {
+        if (hasSuccessCriteria(successCriteria)) {
+          invalidAttempts += 1;
+          recovery = {
+            reason: 'UNVERIFIED_DONE',
+            message: 'The visible page does not match the configured success criteria. Continue with a useful action.',
+            attempt: invalidAttempts,
+            avoid: recovery?.avoid ?? [],
+            avoidRefs: [...new Set(recovery?.avoidRefs ?? [])],
+          };
+          if (lastExecutedTarget && lastExecutedState === observationIdentity(observation)) {
+            recovery.avoidRefs = [...new Set([...recovery.avoidRefs, lastExecutedTarget])];
+          }
+          history.push(historyEntry({
+            step,
+            observation,
+            operation: 'DONE',
+            executed: false,
+            reason: 'UNVERIFIED_DONE',
+          }));
+          emit(onEvent, {
+            type: 'validation',
+            step,
+            accepted: false,
+            code: 'UNVERIFIED_DONE',
+          });
+          if (invalidAttempts > maxRecoveryAttempts) {
+            status = 'error';
+            reasonCode = 'UNVERIFIED_DONE';
+            reason = 'The decision model repeatedly proposed completion without matching the success criteria.';
+            completedAtStep = step;
+            break;
+          }
+          continue;
+        }
         status = 'completed-unverified';
         reasonCode = 'MODEL_PROPOSED_DONE';
         reason = 'The decision model proposed completion; no deterministic success criteria were supplied.';
@@ -142,6 +183,7 @@ export async function runLoop({
           message: error.message,
           attempt: invalidAttempts,
           avoid: recovery?.avoid ?? [],
+          avoidRefs: recovery?.avoidRefs ?? [],
         };
         history.push(historyEntry({
           step,
@@ -170,6 +212,36 @@ export async function runLoop({
 
       invalidAttempts = 0;
       const signature = semanticSignature(validated, observation);
+      if (signature === lastExecutedSignature
+        && validated.target === lastExecutedTarget
+        && lastExecutedState === observationIdentity(observation)) {
+        recovery = {
+          reason: 'NO_OBSERVED_PROGRESS',
+          message: 'The same action did not change the current page. Choose a different target or operation.',
+          attempt: invalidAttempts + 1,
+          avoid: [...new Set([...(recovery?.avoid ?? []), signature])],
+          avoidRefs: [...new Set([
+            ...(recovery?.avoidRefs ?? []),
+            ...(validated.target ? [validated.target] : []),
+          ])],
+        };
+        history.push(historyEntry({
+          step,
+          observation,
+          operation: validated.operation,
+          target: validated.target,
+          inputKey: validated.inputKey,
+          executed: false,
+          reason: 'NO_OBSERVED_PROGRESS',
+        }));
+        emit(onEvent, {
+          type: 'validation',
+          step,
+          accepted: false,
+          code: 'NO_OBSERVED_PROGRESS',
+        });
+        continue;
+      }
       const repetitions = signatureCounts.get(signature) ?? 0;
       if (repetitions >= repeatLimit) {
         recovery = {
@@ -177,6 +249,10 @@ export async function runLoop({
           message: 'The model selected the same semantic action repeatedly.',
           attempt: repetitions,
           avoid: [...new Set([...(recovery?.avoid ?? []), signature])],
+          avoidRefs: [...new Set([
+            ...(recovery?.avoidRefs ?? []),
+            ...(validated.target ? [validated.target] : []),
+          ])],
         };
         history.push(historyEntry({
           step,
@@ -227,6 +303,9 @@ export async function runLoop({
         trimHistory(history, historyLimit);
         if (acted?.observation) {
           observation = acted.observation;
+          lastExecutedSignature = signature;
+          lastExecutedTarget = validated.target ?? null;
+          lastExecutedState = observationIdentity(observation);
           needsObservation = false;
           emit(onEvent, {
             type: 'observation',
@@ -236,6 +315,9 @@ export async function runLoop({
             refCount: Object.keys(observation.refs ?? {}).length,
           });
         } else {
+          lastExecutedSignature = signature;
+          lastExecutedTarget = validated.target ?? null;
+          lastExecutedState = null;
           needsObservation = true;
         }
         emit(onEvent, {
@@ -385,6 +467,18 @@ function mergeUsage(target, usage) {
 
 function emit(onEvent, event) {
   if (typeof onEvent === 'function') onEvent(event);
+}
+
+function observationIdentity(observation) {
+  return [
+    String(observation?.url ?? ''),
+    String(observation?.title ?? ''),
+    String(observation?.snapshot ?? ''),
+  ].join('\n');
+}
+
+function hasSuccessCriteria(criteria) {
+  return Boolean(criteria?.urlContains || criteria?.textContains);
 }
 
 function abortError() {

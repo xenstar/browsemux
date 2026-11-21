@@ -7,6 +7,12 @@
 - Preserved nonzero BSK JSON so an executed action is never mistaken for an
   unexecuted one.
 - Added immediate deterministic success after atomic action-and-observation.
+- Added a dependency-free direct-harness versus Browsemux benchmark with local
+  fixtures, deterministic success checks, token/cost accounting, browser-command
+  counts, and bounded model retries.
+- Rejected identical actions that produce no page change, excluded known
+  unproductive refs during recovery, and rejected premature model `DONE`
+  proposals when deterministic success criteria are configured.
 - Evaluated `agent-browser batch`; retained separate commands because the live
   probe did not improve latency.
 - Added reproducible backend and package-footprint benchmark evidence.

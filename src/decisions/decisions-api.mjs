@@ -53,7 +53,15 @@ export class DecisionsApiProvider {
     this.fetchImpl = fetchImpl;
   }
 
-  async decide({ goal, observation, inputs, history, recovery, signal }) {
+  async decide({
+    goal,
+    successCriteria,
+    observation,
+    inputs,
+    history,
+    recovery,
+    signal,
+  }) {
     if (!this.apiKey) {
       throw new BrowsemuxError('Decision API key is required', {
         code: 'MISSING_API_KEY',
@@ -69,6 +77,7 @@ export class DecisionsApiProvider {
       inputs,
       history,
       recovery,
+      successCriteria,
       maxCandidates: this.maxCandidates,
     });
     const body = {

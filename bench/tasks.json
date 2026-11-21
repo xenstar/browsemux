@@ -1,0 +1,57 @@
+[
+  {
+    "id": "open-link",
+    "startPath": "/",
+    "goal": "Open the documentation page.",
+    "success": {
+      "urlContains": "/docs"
+    },
+    "maxSteps": 3
+  },
+  {
+    "id": "search-form",
+    "startPath": "/search",
+    "goal": "Search for Aurora and open the results page.",
+    "inputs": {
+      "text": {
+        "query": {
+          "label": "Search query",
+          "value": "Aurora"
+        }
+      }
+    },
+    "success": {
+      "urlContains": "q=Aurora",
+      "textContains": "Query: Aurora"
+    },
+    "maxSteps": 5
+  },
+  {
+    "id": "select-filter",
+    "startPath": "/filter",
+    "goal": "Filter the plans to Pro and open the filtered result.",
+    "inputs": {
+      "select": {
+        "plan": {
+          "label": "Plan option",
+          "value": "pro"
+        }
+      }
+    },
+    "success": {
+      "urlContains": "plan=pro",
+      "textContains": "Plan: pro"
+    },
+    "maxSteps": 5
+  },
+  {
+    "id": "two-step-journey",
+    "startPath": "/journey",
+    "goal": "Continue through the journey and finish it.",
+    "success": {
+      "urlContains": "/journey/complete",
+      "textContains": "Journey completed successfully."
+    },
+    "maxSteps": 5
+  }
+]

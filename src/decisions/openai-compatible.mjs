@@ -64,7 +64,15 @@ export class OpenAICompatibleProvider {
     this.fetchImpl = fetchImpl;
   }
 
-  async decide({ goal, observation, inputs, history, recovery, signal }) {
+  async decide({
+    goal,
+    successCriteria,
+    observation,
+    inputs,
+    history,
+    recovery,
+    signal,
+  }) {
     if (!this.apiKey) {
       throw new BrowsemuxError('OpenAI-compatible API key is required', {
         code: 'MISSING_API_KEY',
@@ -79,6 +87,7 @@ export class OpenAICompatibleProvider {
       inputs,
       history,
       recovery,
+      successCriteria,
       maxCandidates: this.maxCandidates,
     });
     const summary = {

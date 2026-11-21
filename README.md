@@ -65,6 +65,13 @@ See [docs/benchmarks.md](docs/benchmarks.md) for commands, ranges, token usage,
 cost, and limitations. This is a small public-site benchmark, not a universal
 browser-agent ranking.
 
+The repository also includes a direct-harness A/B benchmark on controlled local
+flows. In the latest two-repeat run, Browsemux reduced `agent-browser` median
+wall time by 26.4% and cost per verified task by 30.7% at equal success, while
+BSK was 2.5% slower and 30.9% more expensive per verified task. Both outcomes
+matter: the connector is useful only when its saved context and avoided turns
+outweigh its recovery overhead. Reproduce it from [bench/](bench/README.md).
+
 ## Requirements
 
 - Node.js 20 or newer

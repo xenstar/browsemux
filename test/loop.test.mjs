@@ -167,6 +167,63 @@ test('uses an atomic act-and-observe result for immediate deterministic success'
   assert.equal(browser.snapshots.length, 0);
 });
 
+test('rejects an identical action when the page did not change', async () => {
+  const unchangedPage = {
+    ...firstPage,
+    snapshot: [
+      '- button "Search"',
+      '- button "Search"',
+    ].join('\n'),
+    refs: {
+      '@e1': { role: 'button', name: 'Search' },
+      '@e2': { role: 'button', name: 'Search' },
+    },
+  };
+  const browser = new FakeBrowser([unchangedPage]);
+  const provider = new SequenceProvider([
+    { proposal: { operation: 'CLICK', target: '@e1' } },
+    { proposal: { operation: 'CLICK', target: '@e1' } },
+    { proposal: { operation: 'CLICK', target: '@e2' } },
+  ]);
+
+  const result = await runLoop({
+    goal: 'Submit the search',
+    browser,
+    provider,
+    initialObservation: unchangedPage,
+    successCriteria: { urlContains: '/done' },
+    maxSteps: 5,
+  });
+
+  assert.equal(result.status, 'success');
+  assert.equal(browser.actions.length, 2);
+  assert.equal(browser.actions[0].payload.target, '@e1');
+  assert.equal(browser.actions[1].payload.target, '@e2');
+  assert.ok(result.history.some((entry) => entry.reason === 'NO_OBSERVED_PROGRESS'));
+});
+
+test('rejects an unverified DONE proposal when success criteria are configured', async () => {
+  const browser = new FakeBrowser([finalPage]);
+  const provider = new SequenceProvider([
+    { proposal: { operation: 'DONE' } },
+    { proposal: { operation: 'CLICK', target: '@e1' } },
+  ]);
+
+  const result = await runLoop({
+    goal: 'Continue until complete',
+    browser,
+    provider,
+    initialObservation: firstPage,
+    successCriteria: { urlContains: '/done' },
+    maxSteps: 4,
+  });
+
+  assert.equal(result.status, 'success');
+  assert.equal(result.actionCount, 1);
+  assert.equal(provider.calls, 2);
+  assert.ok(result.history.some((entry) => entry.reason === 'UNVERIFIED_DONE'));
+});
+
 class FakeBrowser {
   constructor(snapshots = []) {
     this.name = 'fake';

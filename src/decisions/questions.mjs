@@ -25,10 +25,16 @@ export function buildQuestionSet({
   inputs,
   history = [],
   recovery,
+  successCriteria,
   maxCandidates = 180,
 }) {
-  const operations = allowedOperations(observation, inputs);
-  const selectedRefs = selectRefs(observation.refs, maxCandidates);
+  const avoidedRefs = new Set(recovery?.avoidRefs ?? []);
+  const availableRefs = Object.fromEntries(
+    Object.entries(observation.refs ?? {})
+      .filter(([ref]) => !avoidedRefs.has(ref)),
+  );
+  const operations = allowedOperations({ ...observation, refs: availableRefs }, inputs);
+  const selectedRefs = selectRefs(availableRefs, maxCandidates);
   const questions = {
     operation: {
       type: 'choice',
@@ -78,6 +84,7 @@ export function buildQuestionSet({
 
   const state = {
     goal,
+    successCriteria: publicSuccessCriteria(successCriteria),
     url: observation.url,
     title: observation.title,
     snapshot: observation.snapshot,
@@ -131,9 +138,17 @@ export function decisionStateSummary(state) {
     snapshot: state.snapshot,
     candidates: state.refs,
     inputs: state.inputs,
+    successCriteria: state.successCriteria,
     history: state.history,
     recovery: state.recovery,
   };
+}
+
+function publicSuccessCriteria(criteria) {
+  if (!criteria || typeof criteria !== 'object') return undefined;
+  const entries = Object.entries(criteria)
+    .filter(([, value]) => typeof value === 'string' && value.length > 0);
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
 function addInputQuestion(questions, operations, inputs, operation, kind, instructions) {

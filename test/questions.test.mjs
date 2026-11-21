@@ -54,3 +54,44 @@ test('parses typed operation, target, input, and probabilities', () => {
   assert.equal(parsed.goalReached, 0.12);
   assert.equal(parsed.stuck, 0.05);
 });
+
+test('removes unproductive refs from the recovery question set', () => {
+  const request = buildQuestionSet({
+    goal: 'Submit the search',
+    observation: {
+      ...observation,
+      refs: {
+        '@e1': { role: 'button', name: 'Search' },
+        '@e2': { role: 'button', name: 'Search' },
+      },
+    },
+    inputs: normalizeInputs(),
+    recovery: {
+      reason: 'NO_OBSERVED_PROGRESS',
+      avoidRefs: ['@e1'],
+    },
+  });
+
+  assert.deepEqual(
+    Object.keys(request.questions.click_target.criteria),
+    ['@e2', 'none_of_the_above'],
+  );
+  assert.equal(request.state.refs['@e1'], undefined);
+});
+
+test('includes deterministic success criteria in the decision state', () => {
+  const request = buildQuestionSet({
+    goal: 'Search for Browsemux',
+    observation,
+    inputs: normalizeInputs(),
+    successCriteria: {
+      urlContains: '/results',
+      textContains: 'Query: Browsemux',
+    },
+  });
+
+  assert.deepEqual(request.state.successCriteria, {
+    urlContains: '/results',
+    textContains: 'Query: Browsemux',
+  });
+});

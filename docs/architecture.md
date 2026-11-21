@@ -128,14 +128,20 @@ Validation is intentionally local and deterministic:
 - selected input key must exist and match the operation kind
 - navigation URL must use HTTP or HTTPS
 - repeated semantic signatures are bounded
+- an identical operation on the same target is rejected when the settled page
+  is unchanged
+- refs that produced no observed progress are removed from the immediate
+  recovery candidate set
 
 An invalid proposal consumes a decision iteration but does not touch the
 browser.
 
 ## Completion
 
-The decision model cannot declare verified completion. Model `DONE` yields
-`completed-unverified` unless deterministic URL or text criteria match.
+The decision model cannot declare verified completion. When deterministic URL
+or text criteria are configured, a premature `DONE` is rejected and returned
+to the model as recovery context. Without deterministic criteria, `DONE` yields
+`completed-unverified`.
 
 ## Failure states
 

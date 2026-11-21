@@ -11,7 +11,7 @@ Environment:
 Automated tests:
 
 ```text
-35 passed
+44 passed
 0 failed
 ```
 
@@ -82,4 +82,4 @@ The final `agent-browser` smoke test succeeded through the unchanged fallback
 path.
 
 See [benchmarks.md](benchmarks.md) for the repeated backend benchmark,
-two-action flow, and forvela comparison.
+direct-harness A/B comparison, two-action flow, and forvela comparison.

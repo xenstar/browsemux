@@ -1,10 +1,131 @@
-# Benchmark Baseline
+# Benchmarks
+
+## Public Benchmark Landscape
+
+As of 2026-11-21, no public benchmark was found that compares a harness model
+directly controlling `agent-browser` or BSK against Browsemux mediating the same
+browser and model.
+
+The closest useful evidence is:
+
+- [Ora's JEV evaluation](https://ora.ai/blog/evaluating-jev) compared the same
+  seeded sites and writer model while changing only the step decider. The
+  browser arm had a 1.9 s median with JEV versus 8.2 s without it, and step
+  decisions took 159 ms versus 1,211 ms. It is not a Browsemux benchmark.
+- [LangChain's WebVoyager-100 harness comparison](https://github.com/langchain-ai/deepagents/pull/6868)
+  held the model and task set constant across eight harness designs. Cost
+  varied by about 24x. Response size and model turns mattered more than raw
+  command count. Its `agent-browser` arm reported 77% success, 34,495 median
+  tokens, $0.0206 median cost, and 17 s median latency.
+- [WABER](https://www.microsoft.com/en-us/research/wp-content/uploads/2025/04/134_WABER_Web_Agent_Benchmarki.pdf)
+  measures web-agent reliability and efficiency on real websites.
+- [WindTunnel](https://webmcp.com/windtunnel-paper.pdf) compares screenshot,
+  DOM, and WebMCP interfaces to the same browser tasks.
+- [MCP vs RAG vs NLWeb vs HTML](https://doi.org/10.1145/3774904.3792893)
+  found that browser interface choice materially changes tokens, latency, and
+  task success.
+
+These studies support measuring the connector directly. They do not establish
+that Browsemux is faster or cheaper on a particular browser or task.
+
+## Direct Harness vs Browsemux
+
+The repository includes a dependency-free A/B runner in `bench/`.
+
+It compares:
+
+- **Direct:** a simulated harness conversation that accumulates every previous
+  action and page snapshot.
+- **Browsemux:** compact indexed state, bounded action history, local target
+  validation, no-progress detection, and deterministic completion checks.
+
+Both arms use the same:
+
+- local fixture pages and task inputs
+- `agent-browser` or BSK executable
+- decision model and endpoint
+- fresh browser session per run
+- 8,000-character snapshot limit
+- deterministic URL and visible-text success checks
+- bounded transient model retries
+
+The fixture has four tasks:
+
+1. Open a documentation link.
+2. Fill a search field and submit the form.
+3. Select a dropdown value and submit.
+4. Complete a two-step navigation journey.
+
+### Published Run
+
+Environment:
+
+- Node.js `v24.22.3`
+- `agent-browser` `0.43.0`
+- BSK `0.5.0`
+- OpenRouter chat completions with `deepseek/deepseek-chat`
+- Two recorded repeats per task/backend/arm
+- 32 total recorded runs
+- Bounded model retries: 2
+
+Overall results:
+
+| Backend | Arm | Verified | Median wall | p95 wall | Median input tokens | Cost / verified task | Median commands |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| agent-browser | direct | 7/8 | 13,638 ms | 30,902 ms | 823 | $0.000393 | 7 |
+| agent-browser | Browsemux | 7/8 | 10,040 ms | 27,655 ms | 743 | $0.000272 | 7 |
+| BSK | direct | 7/8 | 10,029 ms | 26,483 ms | 876 | $0.000342 | 6 |
+| BSK | Browsemux | 7/8 | 10,275 ms | 41,424 ms | 908.5 | $0.000447 | 6 |
+
+Relative to the direct harness:
+
+| Backend | Success delta | Median wall change | Input-token change | Cost / verified task change |
+| --- | ---: | ---: | ---: | ---: |
+| agent-browser | 0.0 pp | -26.4% | -9.7% | -30.7% |
+| BSK | 0.0 pp | +2.5% | +3.7% | +30.9% |
+
+### Findings
+
+- Browsemux showed a meaningful advantage on this `agent-browser` fixture run:
+  equal verified success, 26.4% lower median wall time, 9.7% fewer input tokens,
+  and 30.7% lower cost per verified task.
+- Browsemux did not improve BSK on this run. Median wall time was 2.5% higher,
+  input tokens were 3.7% higher, and cost per verified task was 30.9% higher.
+- The BSK gap came mostly from a form with duplicate identical `Search` refs.
+  BSK exposed one non-working and one working ref. The no-progress guard and
+  recovery filtering now avoid the failed ref and reject premature `DONE`, but
+  the recovery path adds a model turn.
+- Small tasks are dominated by model latency. Connector execution overhead is
+  secondary, so context savings do not automatically produce wall-time wins.
+- Provider transport failures and one BSK process termination affected one run
+  per arm. They remain in the success-rate and cost totals.
+
+The raw records are in
+`bench/results/2026-11-21-direct-vs-browsemux/runs.json`. The generated summary
+is in the same directory.
+
+### Reproduce
+
+```bash
+export OPENROUTER_API_KEY=...
+node bench/runner.mjs \
+  --tasks open-link,search-form,select-filter,two-step-journey \
+  --backends agent-browser,bsk \
+  --arms direct,browsemux \
+  --repeats 2 \
+  --model deepseek/deepseek-chat \
+  --model-retries 2 \
+  --output-dir bench/results/local
+```
+
+Query parameters, content, and states may vary when using another machine,
+browser build, provider route, or model.
 
 Measured on 2026-11-21 on Windows with Node.js `v24.22.3`,
 `agent-browser` `0.43.0`, BSK `0.5.0`, and OpenRouter Decisions using
 `typesafe/jev-1.14`.
 
-## One-Click Flow
+## Earlier One-Click Baseline
 
 Public task:
 
@@ -126,8 +247,8 @@ classification modes.
 
 | Metric | Value |
 | --- | ---: |
-| Packed package | 30,905 bytes |
-| Unpacked package | 112,926 bytes |
+| Packed package | 34,333 bytes |
+| Unpacked package | 123,792 bytes |
 | Packaged files | 33 |
 | Runtime dependencies | 0 |
 
@@ -135,8 +256,12 @@ classification modes.
 
 - Three samples are enough to catch repeated workflow defects, not to estimate
   tail latency.
+- The direct-vs-mediated run uses two repeats. Treat it as a reproducible smoke
+  comparison, not a final ranking.
 - Network and provider load materially affect decision time.
 - Results use one public page and one pinned decision model.
+- The direct-vs-mediated fixture covers four short deterministic flows and one
+  fixed general-purpose model.
 - BSK runs use a live local Chrome connection; results will differ on another
   machine or when attaching to a heavily loaded browser.
 - Cost is provider-reported for this exact request mix and is not a price
