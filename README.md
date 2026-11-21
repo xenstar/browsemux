@@ -53,6 +53,17 @@ Decision providers:
 Browser Use, Playwright, Stagehand, Skyvern, and other frameworks are outside
 the initial scope.
 
+## Measured Baseline
+
+The repeatable one-click benchmark on 2026-11-21 completed 3 of 3 runs with
+both supported backends. Median end-to-end time was 4,065 ms with
+`agent-browser` and 3,401 ms with BSK. The decision call was roughly 2.5
+seconds in both cases, so model latency dominated the run.
+
+See [docs/benchmarks.md](docs/benchmarks.md) for commands, ranges, token usage,
+cost, and limitations. This is a small public-site benchmark, not a universal
+browser-agent ranking.
+
 ## Requirements
 
 - Node.js 20 or newer
@@ -223,6 +234,15 @@ The result contains:
   uploads, MFA, and CAPTCHA.
 
 See [SECURITY.md](SECURITY.md) for the trust boundary.
+
+## Project Policies
+
+- [License](LICENSE): MIT
+- [Contributing](CONTRIBUTING.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Privacy and data handling](PRIVACY.md)
+- [Changelog](CHANGELOG.md)
 
 ## Library
 

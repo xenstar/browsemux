@@ -25,4 +25,12 @@ Browsemux does not solve CAPTCHAs and does not bypass authentication.
 ## Reporting
 
 Do not open a public issue for a vulnerability involving credentials or browser
-escape. Report it privately to the repository maintainer.
+escape. Use GitHub private vulnerability reporting:
+
+```text
+https://github.com/xenstar/browsemux/security/advisories/new
+```
+
+Include the affected version, backend, provider, reproduction steps, and the
+smallest safe diagnostic output. Never include API keys, cookies, session
+tokens, private URLs, or page content.

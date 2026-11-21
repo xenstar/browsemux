@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added reproducible backend and package-footprint benchmark evidence.
+- Added privacy, code of conduct, security-reporting, and contribution policies.
+- Added package repository metadata and npm publish guards.
+- Fixed the documented `doctor --json` flag.
+
 ## 0.1.0
 
 - Added a bounded observation, decision, validation, execution, and handoff loop.

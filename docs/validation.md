@@ -11,7 +11,7 @@ Environment:
 Automated tests:
 
 ```text
-23 passed
+24 passed
 0 failed
 ```
 
@@ -47,5 +47,25 @@ The final URL was `https://www.iana.org/help/example-domains`.
 
 This is one smoke run, not a benchmark. It verifies the real
 `agent-browser -> OpenRouter Decisions -> validation -> execution -> observation`
-path. BSK live execution was not performed during this run; its command mapping,
-ref parsing, stale-ref rejection, and settling path are covered by tests.
+path.
+
+BSK live execution also passed in an isolated `browsemux-smoke` scope:
+
+| Metric | Value |
+| --- | ---: |
+| Status | `success` |
+| Planned actions | 1 |
+| Executed actions | 1 |
+| Total time | 4,452 ms |
+| Observation time | 0 ms |
+| Decision time | 2,577 ms |
+| Action time | 1,873 ms |
+| Input tokens | 1,121 |
+| Output tokens | 146 |
+| Charged cost | $0.000047082 |
+
+The session closed after the run. BSK returned the settled post-action
+observation with the action, so no separate snapshot command was required.
+
+See [benchmarks.md](benchmarks.md) for the repeated backend benchmark,
+two-action flow, and forvela comparison.

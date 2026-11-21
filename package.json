@@ -2,6 +2,15 @@
   "name": "browsemux",
   "version": "0.1.0",
   "description": "A bounded decision bridge between agent harnesses and browser backends.",
+  "author": "xenstar",
+  "homepage": "https://github.com/xenstar/browsemux",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xenstar/browsemux.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xenstar/browsemux/issues"
+  },
   "type": "module",
   "bin": {
     "browsemux": "bin/browsemux.mjs"
@@ -16,6 +25,10 @@
     "src",
     "docs",
     "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "PRIVACY.md",
     "LICENSE",
     "NOTICE.md",
     "SECURITY.md"
@@ -23,7 +36,8 @@
   "scripts": {
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage",
-    "check": "node --check bin/browsemux.mjs && node --check src/cli.mjs"
+    "check": "node --check bin/browsemux.mjs && node --check src/cli.mjs",
+    "prepublishOnly": "npm test && npm run check"
   },
   "keywords": [
     "browser",
@@ -36,6 +50,9 @@
     "bsk"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20"
   }
