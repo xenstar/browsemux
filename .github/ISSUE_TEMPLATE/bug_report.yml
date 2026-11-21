@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a reproducible Browsemux defect
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include API keys, cookies, tokens, or private page content.
+  - type: input
+    id: version
+    attributes:
+      label: Browsemux version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Browser backend
+      options:
+        - agent-browser
+        - BSK
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Decision provider
+      options:
+        - TypeSafe System One
+        - OpenRouter Decisions
+        - OpenAI-compatible
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: Redact credentials and private URLs.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: JSONL diagnostics
+      description: Include bounded error output only after removing secrets and personal data.
+      render: json

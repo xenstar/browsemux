@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a backend, provider, or protocol improvement
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the concrete browser workflow that cannot be completed today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed interface
+      description: Explain where the feature belongs: backend, provider, validator, or loop.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and failure behavior
+      description: Explain stale-state, permission, secret, and unknown-effect handling.
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: The proposal keeps browser execution outside the decision model.
+          required: true
+        - label: The proposal can be tested without real credentials or private pages.
+          required: true
