@@ -25,9 +25,15 @@ Every backend exposes:
   async attach(options),
   async snapshot(options),
   async action(operation, options),
+  async actAndObserve(operation, options), // optional
   async close(options)
 }
 ```
+
+`actAndObserve` is an optional backend optimization. It executes one validated
+operation and returns both the action result and its settled observation. The
+loop falls back to `action()` followed by `snapshot()` when a backend does not
+provide it.
 
 A normalized observation contains:
 

@@ -11,7 +11,7 @@ Environment:
 Automated tests:
 
 ```text
-24 passed
+35 passed
 0 failed
 ```
 
@@ -66,6 +66,20 @@ BSK live execution also passed in an isolated `browsemux-smoke` scope:
 
 The session closed after the run. BSK returned the settled post-action
 observation with the action, so no separate snapshot command was required.
+
+After the `bsk step` integration, three live samples all reached
+`status: "success"` with one executed action:
+
+| Metric | Median |
+| --- | ---: |
+| Total | 3,283 ms |
+| Decision | 2,453 ms |
+| Action plus observation | 808 ms |
+| Separate observation | 0 ms |
+
+A final smoke test after hardening uncertain-effect handling also succeeded.
+The final `agent-browser` smoke test succeeded through the unchanged fallback
+path.
 
 See [benchmarks.md](benchmarks.md) for the repeated backend benchmark,
 two-action flow, and forvela comparison.

@@ -48,6 +48,39 @@ BSK reports zero separate observation time because its settled observation is
 returned with the action result. Browsemux consumes that observation through a
 cached snapshot rather than issuing another browser round trip.
 
+### Post-Optimization
+
+After switching the common BSK operations to `bsk step`, three fresh runs on
+the same task and model all succeeded:
+
+| Metric | BSK |
+| --- | ---: |
+| Verified successes | 3 / 3 |
+| Median total | 3,283 ms |
+| Total range | 3,207-3,313 ms |
+| Median decision | 2,453 ms |
+| Median action plus observation | 808 ms |
+| Cost per run | $0.000047082 |
+
+Against the stored pre-change median, total time improved by 118 ms (3.5%) and
+the action phase improved by 89 ms (9.9%). This is a modest optimization; the
+decision call remains the dominant cost.
+
+## Low-Level Timing Probes
+
+Paired local probes isolated the browser command paths from decision-model
+latency.
+
+| Path | Samples | Median |
+| --- | ---: | ---: |
+| BSK click + sync + tab list | 4 | 742 ms |
+| BSK step + tab list | 4 | 691 ms |
+| agent-browser separate click + snapshot | 3 | 1,009 ms |
+| agent-browser batch click + snapshot | 3 | 1,036 ms |
+
+The BSK optimization uses two CLI processes instead of three. The
+`agent-browser batch` path was rejected because it was not faster.
+
 ## Two-Action Flow
 
 The `agent-browser` backend also completed:
@@ -93,8 +126,8 @@ classification modes.
 
 | Metric | Value |
 | --- | ---: |
-| Packed package | 28,704 bytes |
-| Unpacked package | 103,947 bytes |
+| Packed package | 30,905 bytes |
+| Unpacked package | 112,926 bytes |
 | Packaged files | 33 |
 | Runtime dependencies | 0 |
 

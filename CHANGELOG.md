@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Optimized BSK click, fill, select, press, and navigate execution through
+  `bsk step`, with partial-failure reconciliation and no action replay.
+- Preserved nonzero BSK JSON so an executed action is never mistaken for an
+  unexecuted one.
+- Added immediate deterministic success after atomic action-and-observation.
+- Evaluated `agent-browser batch`; retained separate commands because the live
+  probe did not improve latency.
 - Added reproducible backend and package-footprint benchmark evidence.
 - Added privacy, code of conduct, security-reporting, and contribution policies.
 - Added package repository metadata and npm publish guards.

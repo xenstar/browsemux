@@ -55,10 +55,11 @@ the initial scope.
 
 ## Measured Baseline
 
-The repeatable one-click benchmark on 2026-11-21 completed 3 of 3 runs with
-both supported backends. Median end-to-end time was 4,065 ms with
-`agent-browser` and 3,401 ms with BSK. The decision call was roughly 2.5
-seconds in both cases, so model latency dominated the run.
+The original repeatable one-click benchmark on 2026-11-21 completed 3 of 3
+runs with both supported backends. Median end-to-end time was 4,065 ms with
+`agent-browser` and 3,401 ms with BSK. After the BSK `step` optimization,
+three fresh runs all succeeded with a median of 3,283 ms. Decision-model
+latency still dominates the run.
 
 See [docs/benchmarks.md](docs/benchmarks.md) for commands, ranges, token usage,
 cost, and limitations. This is a small public-site benchmark, not a universal
@@ -69,7 +70,7 @@ browser-agent ranking.
 - Node.js 20 or newer
 - One browser backend:
   - `agent-browser` 0.38 or newer
-  - Tencent `bsk`
+  - Tencent `bsk` 0.5 or newer
 - One decision-provider API key
 
 Check local commands:

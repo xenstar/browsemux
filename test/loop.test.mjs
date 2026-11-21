@@ -136,6 +136,37 @@ test('uses supplied text without exposing it to the provider', async () => {
   assert.deepEqual(browser.actions[0].payload.value, 'Browsemux');
 });
 
+test('uses an atomic act-and-observe result for immediate deterministic success', async () => {
+  const atomicPage = {
+    ...firstPage,
+    url: 'https://example.com/complete',
+    snapshot: '- heading "Complete"',
+    refs: {},
+  };
+  const browser = new FakeBrowser([]);
+  browser.actAndObserve = async () => ({
+    actionResult: { dispatched: true, effect: 'settled', settledUrl: atomicPage.url },
+    observation: atomicPage,
+  });
+  const provider = new SequenceProvider([
+    { proposal: { operation: 'CLICK', target: '@e1' } },
+  ]);
+
+  const result = await runLoop({
+    goal: 'Continue until complete',
+    browser,
+    provider,
+    initialObservation: firstPage,
+    successCriteria: { urlContains: '/complete' },
+    maxSteps: 1,
+  });
+
+  assert.equal(result.status, 'success');
+  assert.equal(result.completedAtStep, 1);
+  assert.equal(browser.actions.length, 0);
+  assert.equal(browser.snapshots.length, 0);
+});
+
 class FakeBrowser {
   constructor(snapshots = []) {
     this.name = 'fake';

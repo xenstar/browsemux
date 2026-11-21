@@ -207,10 +207,13 @@ export async function runLoop({
 
       const actionStarted = nowMs();
       try {
-        const actionResult = await browser.action(
-          validated.operation,
-          { ...executionInput(validated), signal },
-        );
+        const actionOptions = { ...executionInput(validated), signal };
+        const acted = typeof browser.actAndObserve === 'function'
+          ? await browser.actAndObserve(validated.operation, actionOptions)
+          : null;
+        const actionResult = acted?.observation
+          ? acted.actionResult
+          : await browser.action(validated.operation, actionOptions);
         timings.actionMs += elapsed(actionStarted);
         history.push(historyEntry({
           step,
@@ -222,7 +225,19 @@ export async function runLoop({
           result: compactActionResult(actionResult),
         }));
         trimHistory(history, historyLimit);
-        needsObservation = true;
+        if (acted?.observation) {
+          observation = acted.observation;
+          needsObservation = false;
+          emit(onEvent, {
+            type: 'observation',
+            step,
+            url: observation.url,
+            title: observation.title,
+            refCount: Object.keys(observation.refs ?? {}).length,
+          });
+        } else {
+          needsObservation = true;
+        }
         emit(onEvent, {
           type: 'action',
           step,
@@ -231,6 +246,13 @@ export async function runLoop({
           inputKey: validated.inputKey,
           latencyMs: elapsed(actionStarted),
         });
+        if (acted?.observation && deterministicSuccess(observation, successCriteria)) {
+          status = 'success';
+          reasonCode = 'VERIFIED_SUCCESS';
+          reason = 'Configured success criteria matched the visible page.';
+          completedAtStep = step;
+          break;
+        }
       } catch (error) {
         timings.actionMs += elapsed(actionStarted);
         history.push(historyEntry({

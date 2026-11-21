@@ -22,7 +22,7 @@ The backend:
 
 ## BSK
 
-The connector talks to Tencent BrowserSkill through its JSON CLI.
+The connector talks to Tencent BrowserSkill 0.5 or newer through its JSON CLI.
 
 Supported modes:
 
@@ -34,9 +34,21 @@ The backend:
 
 - keeps the BSK session and tab IDs
 - uses BSK `@eN` refs
-- calls `sync` after actions
+- uses `bsk step` for click, fill, select, press, and navigate
+- accepts the post-action observation returned by `step`
+- reads the current tab URL once after the step
+- preserves nonzero JSON, reconciles with read-only `sync`, and never replays
+  an action whose effect is uncertain
+- calls `sync` after operations that do not have a verified `step` mapping
 - falls back to `snapshot` when `sync` returns no content
 - reports `EFFECT_UNKNOWN` when no settled observation can be obtained
+
+The optimized path uses two CLI processes instead of three. In four paired
+local samples, median action-plus-observation time changed from 742 ms to
+691 ms on the fixed one-click task.
+
+`agent-browser batch` was also measured. It was not adopted because the
+action-plus-snapshot median was 1,036 ms versus 1,009 ms for separate commands.
 
 BSK remains responsible for the browser process and Agent Window. Browsemux does
 not install or manage that application.

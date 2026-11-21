@@ -8,6 +8,7 @@ export class BskCli {
   constructor({
     command = process.env.BSK_COMMAND ?? 'bsk',
     defaultTimeoutMs = 45_000,
+    runProcessImpl = runProcess,
   } = {}) {
     if (!command || typeof command !== 'string') {
       throw new BrowsemuxError('BSK command must be a non-empty string', {
@@ -16,11 +17,42 @@ export class BskCli {
     }
     this.command = command;
     this.defaultTimeoutMs = defaultTimeoutMs;
+    this.runProcess = runProcessImpl;
   }
 
   async run(args, { signal, timeoutMs = this.defaultTimeoutMs } = {}) {
-    const result = await runProcess(this.command, args, { signal, timeoutMs });
+    const result = await this.runProcess(this.command, args, { signal, timeoutMs });
     return parseJsonOutput(result.stdout);
+  }
+
+  async runAllowFailure(args, { signal, timeoutMs = this.defaultTimeoutMs } = {}) {
+    try {
+      const result = await this.runProcess(this.command, args, { signal, timeoutMs });
+      return {
+        payload: parseJsonOutput(result.stdout),
+        exitCode: 0,
+        stderr: result.stderr,
+      };
+    } catch (error) {
+      const details = error?.details;
+      const stdout = String(details?.stdout ?? '');
+      const parsableFailure = ['PROCESS_EXIT', 'PROCESS_TIMEOUT'].includes(error?.code)
+        && Boolean(stdout.trim());
+      if (!parsableFailure) throw error;
+
+      let payload;
+      try {
+        payload = parseJsonOutput(stdout);
+      } catch {
+        throw error;
+      }
+      return {
+        payload,
+        exitCode: Number.isInteger(details?.exitCode) ? details.exitCode : null,
+        stderr: details?.stderr ?? '',
+        processError: error,
+      };
+    }
   }
 }
 
@@ -149,11 +181,7 @@ export class BskBackend {
     value,
     signal,
   } = {}) {
-    if (isTargeted(operation) && (!target || !this.lastObservation?.refs?.[target])) {
-      throw new BrowsemuxError(`Target ${target ?? '(missing)'} is not in the latest BSK snapshot`, {
-        code: 'STALE_TARGET',
-      });
-    }
+    this.validateTarget(operation, target);
     const command = this.actionCommand(operation, { target, value });
     await this.cli.run(command, { signal, timeoutMs: 35_000 });
     const observation = await this.settleAfterAction({ signal });
@@ -162,6 +190,82 @@ export class BskBackend {
       dispatched: true,
       effect: 'settled',
       settledUrl: observation.url,
+    };
+  }
+
+  async actAndObserve(operation, {
+    target,
+    value,
+    signal,
+  } = {}) {
+    const command = this.stepCommand(operation, { target, value });
+    if (!command) {
+      const actionResult = await this.action(operation, { target, value, signal });
+      const observation = this.cachedObservation;
+      this.cachedObservation = null;
+      if (observation) return { actionResult, observation };
+      return {
+        actionResult,
+        observation: await this.snapshot({ signal }),
+      };
+    }
+
+    this.validateTarget(operation, target);
+    let outcome;
+    try {
+      outcome = typeof this.cli.runAllowFailure === 'function'
+        ? await this.cli.runAllowFailure(command, { signal, timeoutMs: 35_000 })
+        : {
+          payload: await this.cli.run(command, { signal, timeoutMs: 35_000 }),
+          exitCode: 0,
+        };
+    } catch (error) {
+      if (isProcessFailure(error)) {
+        throw unknownEffectError('BSK step failed before returning a usable action result', error);
+      }
+      throw error;
+    }
+    const payload = outcome.payload ?? {};
+    const actionExecuted = Boolean(payload.action?.result);
+
+    if (outcome.exitCode !== 0 && !actionExecuted) {
+      throw unknownEffectError(
+        'BSK step exited without enough evidence to determine whether the action ran',
+        outcome.processError,
+      );
+    }
+
+    const post = payload.post?.observation ?? payload.post ?? {};
+    const postText = String(post.text ?? '');
+    if (outcome.exitCode === 0 && postText.trim()) {
+      let observation;
+      try {
+        observation = await this.observationFromPost(post, { signal });
+      } catch (error) {
+        if (isAbort(error, signal)) throw error;
+        throw unknownEffectError(
+          'BSK step executed but the current tab could not be verified',
+          error,
+        );
+      }
+      return {
+        actionResult: {
+          dispatched: true,
+          effect: 'settled',
+          settledUrl: observation.url,
+        },
+        observation,
+      };
+    }
+
+    const observation = await this.settleAfterAction({ signal });
+    return {
+      actionResult: {
+        dispatched: true,
+        effect: 'observed-after-reconcile',
+        settledUrl: observation.url,
+      },
+      observation,
     };
   }
 
@@ -209,6 +313,70 @@ export class BskBackend {
     }
   }
 
+  stepCommand(operation, { target, value } = {}) {
+    const common = [
+      'step',
+      ...this.sessionArgs(),
+      ...this.tabArgs(),
+      '--wait-timeout-ms',
+      String(this.settleTimeoutMs),
+      '--json',
+    ];
+    switch (operation) {
+      case 'CLICK':
+        return [...common, '--action', 'click', '--params', JSON.stringify({ ref: target })];
+      case 'TYPE':
+        return [
+          ...common,
+          '--action',
+          'fill',
+          '--params',
+          JSON.stringify({ ref: target, value }),
+        ];
+      case 'SELECT':
+        return [
+          ...common,
+          '--action',
+          'select',
+          '--params',
+          JSON.stringify({ ref: target, values: [value] }),
+        ];
+      case 'PRESS':
+        return [...common, '--action', 'press', '--params', JSON.stringify({ key: value })];
+      case 'NAVIGATE':
+        return [
+          ...common,
+          '--action',
+          'navigate',
+          '--params',
+          JSON.stringify({ url: validateHttpUrl(value) }),
+        ];
+      default:
+        return null;
+    }
+  }
+
+  async observationFromPost(post, { signal } = {}) {
+    const deadline = this.now() + this.settleTimeoutMs;
+    const tab = await this.readTab({ signal, deadline });
+    const observation = normalizeObservation({
+      url: tab.url || this.lastUrl,
+      title: tab.title,
+      snapshot: post.text,
+      tabId: post.tab_id ?? tab.tab_id ?? this.tabId,
+    });
+    this.remember(observation);
+    return observation;
+  }
+
+  validateTarget(operation, target) {
+    if (isTargeted(operation) && (!target || !this.lastObservation?.refs?.[target])) {
+      throw new BrowsemuxError(`Target ${target ?? '(missing)'} is not in the latest BSK snapshot`, {
+        code: 'STALE_TARGET',
+      });
+    }
+  }
+
   async settleAfterAction({ signal } = {}) {
     const deadline = this.now() + this.settleTimeoutMs;
     let lastError;
@@ -243,12 +411,10 @@ export class BskBackend {
       const delay = Math.min(this.settlePollMs, Math.max(0, deadline - this.now()));
       if (delay > 0) await this.sleep(delay);
     }
-    const error = new BrowsemuxError(
+    throw unknownEffectError(
       `BSK action completed but the page did not settle within ${this.settleTimeoutMs}ms`,
-      { code: 'EFFECT_UNKNOWN', cause: lastError },
+      lastError,
     );
-    error.effectState = 'unknown';
-    throw error;
   }
 
   async readTab({ signal, deadline }) {
@@ -337,5 +503,19 @@ function remaining(now, deadline) {
 
 function isAbort(error, signal) {
   return signal?.aborted || error?.code === 'ABORT_ERR' || error?.name === 'AbortError';
+}
+
+function isProcessFailure(error) {
+  return ['PROCESS_EXIT', 'PROCESS_TIMEOUT'].includes(error?.code);
+}
+
+function unknownEffectError(message, cause) {
+  const error = new BrowsemuxError(message, {
+    code: 'EFFECT_UNKNOWN',
+    cause,
+    details: cause?.details,
+  });
+  error.effectState = 'unknown';
+  return error;
 }
 
