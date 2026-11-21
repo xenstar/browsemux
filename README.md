@@ -19,7 +19,7 @@ checks, then gives your agent one small result.
 
 </div>
 
-## ⚡ The Short Version
+## ⚡ What Browsemux Does
 
 An AI agent can say, **"Find the documentation link and open it."** The hard
 part is doing that reliably without making a large model inspect the whole page

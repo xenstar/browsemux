@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 - 2026-11-21
+
+- Fixed Linux CI coverage for Windows skill paths by making the skill resolver
+  honor its supplied platform and testing Windows and POSIX behavior
+  independently.
+- Replaced the unnatural "The Short Version" README heading with a direct
+  "What Browsemux Does" section.
+
 ## 0.1.1 - 2026-11-21
 
 - Rewrote the README for first-time users, with a plain-language explanation

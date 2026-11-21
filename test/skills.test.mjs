@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { join } from 'node:path';
 import {
   installBrowsemuxSkill,
@@ -26,11 +27,23 @@ test('resolves project and user skill targets for all harnesses', () => {
     harnesses: 'codex,opencode',
     scope: 'project',
     cwd,
+    platformName: 'win32',
   });
   assert.deepEqual(project.map((entry) => entry.target), [
-    join(cwd, '.codex', 'skills', 'browsemux'),
-    join(cwd, '.opencode', 'skills', 'browsemux'),
+    path.win32.join(cwd, '.codex', 'skills', 'browsemux'),
+    path.win32.join(cwd, '.opencode', 'skills', 'browsemux'),
   ]);
+
+  const posixProject = resolveSkillTargets({
+    harnesses: 'codex',
+    scope: 'project',
+    cwd: '/work/project',
+    platformName: 'linux',
+  });
+  assert.deepEqual(
+    posixProject.map((entry) => entry.target),
+    [path.posix.join('/work/project', '.codex', 'skills', 'browsemux')],
+  );
 
   const user = resolveSkillTargets({
     harnesses: 'all',
@@ -43,7 +56,10 @@ test('resolves project and user skill targets for all harnesses', () => {
     platformName: 'win32',
   });
   assert.equal(user.length, 6);
-  assert.ok(user.some((entry) => entry.target.endsWith(join('hermes', 'skills', 'browsemux'))));
+  assert.ok(
+    user.some((entry) =>
+      entry.target.endsWith(path.win32.join('hermes', 'skills', 'browsemux'))),
+  );
 });
 
 test('installs the portable skill and rejects a conflicting copy without force', async (t) => {

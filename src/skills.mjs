@@ -1,11 +1,21 @@
 import { cp, mkdir, readdir, readFile, rm, stat } from 'node:fs/promises';
 import { homedir, platform } from 'node:os';
-import { join, resolve } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BrowsemuxError } from './errors.mjs';
 
 const SKILL_NAME = 'browsemux';
 const HARNESSES = ['codex', 'agents', 'claude', 'cursor', 'opencode', 'hermes'];
+const POSIX_PLATFORMS = new Set([
+  'aix',
+  'darwin',
+  'freebsd',
+  'hpux',
+  'linux',
+  'openbsd',
+  'posix',
+  'sunos',
+]);
 
 export function skillSourcePath() {
   return fileURLToPath(new URL('../skills/browsemux', import.meta.url));
@@ -25,18 +35,19 @@ export function resolveSkillTargets({
     });
   }
 
+  const pathModule = pathForPlatform(platformName);
   const selected = selectedHarnesses(harnesses);
   const roots = selected.map((harness) => ({
     harness,
     skillsRoot: scope === 'project'
-      ? projectSkillRoot(harness, cwd)
-      : userSkillRoot(harness, { env, home, platformName }),
+      ? projectSkillRoot(harness, cwd, pathModule)
+      : userSkillRoot(harness, { env, home, platformName, pathModule }),
   }));
   const seen = new Set();
 
   return roots
     .filter((entry) => {
-      const resolved = resolve(entry.skillsRoot);
+      const resolved = pathModule.resolve(entry.skillsRoot);
       const key = platformName === 'win32' ? resolved.toLowerCase() : resolved;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -44,7 +55,7 @@ export function resolveSkillTargets({
     })
     .map((entry) => ({
       ...entry,
-      target: join(entry.skillsRoot, SKILL_NAME),
+      target: pathModule.join(entry.skillsRoot, SKILL_NAME),
     }));
 }
 
@@ -117,6 +128,12 @@ export async function installBrowsemuxSkill({
   };
 }
 
+function pathForPlatform(platformName) {
+  if (platformName === 'win32') return path.win32;
+  if (POSIX_PLATFORMS.has(platformName)) return path.posix;
+  return path;
+}
+
 function selectedHarnesses(harnesses) {
   const requested = Array.isArray(harnesses)
     ? harnesses
@@ -144,21 +161,21 @@ function selectedHarnesses(harnesses) {
   return [...selected];
 }
 
-function projectSkillRoot(harness, cwd) {
-  const root = resolve(cwd);
+function projectSkillRoot(harness, cwd, pathModule) {
+  const root = pathModule.resolve(cwd);
   switch (harness) {
     case 'codex':
-      return join(root, '.codex', 'skills');
+      return pathModule.join(root, '.codex', 'skills');
     case 'agents':
-      return join(root, '.agents', 'skills');
+      return pathModule.join(root, '.agents', 'skills');
     case 'claude':
-      return join(root, '.claude', 'skills');
+      return pathModule.join(root, '.claude', 'skills');
     case 'cursor':
-      return join(root, '.cursor', 'skills');
+      return pathModule.join(root, '.cursor', 'skills');
     case 'opencode':
-      return join(root, '.opencode', 'skills');
+      return pathModule.join(root, '.opencode', 'skills');
     case 'hermes':
-      return join(root, '.hermes', 'skills');
+      return pathModule.join(root, '.hermes', 'skills');
     default:
       throw new BrowsemuxError(`Unsupported harness: ${harness}`, {
         code: 'INVALID_ARGUMENTS',
@@ -166,28 +183,31 @@ function projectSkillRoot(harness, cwd) {
   }
 }
 
-function userSkillRoot(harness, { env, home, platformName }) {
+function userSkillRoot(harness, { env, home, platformName, pathModule }) {
   switch (harness) {
     case 'codex':
-      return join(env.CODEX_HOME || join(home, '.codex'), 'skills');
+      return pathModule.join(env.CODEX_HOME || pathModule.join(home, '.codex'), 'skills');
     case 'agents':
-      return join(env.AGENTS_HOME || join(home, '.agents'), 'skills');
+      return pathModule.join(env.AGENTS_HOME || pathModule.join(home, '.agents'), 'skills');
     case 'claude':
-      return join(env.CLAUDE_CONFIG_DIR || join(home, '.claude'), 'skills');
+      return pathModule.join(
+        env.CLAUDE_CONFIG_DIR || pathModule.join(home, '.claude'),
+        'skills',
+      );
     case 'cursor':
-      return join(env.CURSOR_HOME || join(home, '.cursor'), 'skills');
+      return pathModule.join(env.CURSOR_HOME || pathModule.join(home, '.cursor'), 'skills');
     case 'opencode':
-      return join(
-        env.XDG_CONFIG_HOME || join(home, '.config'),
+      return pathModule.join(
+        env.XDG_CONFIG_HOME || pathModule.join(home, '.config'),
         'opencode',
         'skills',
       );
     case 'hermes': {
-      if (env.HERMES_HOME) return join(env.HERMES_HOME, 'skills');
+      if (env.HERMES_HOME) return pathModule.join(env.HERMES_HOME, 'skills');
       if (platformName === 'win32' && env.LOCALAPPDATA) {
-        return join(env.LOCALAPPDATA, 'hermes', 'skills');
+        return pathModule.join(env.LOCALAPPDATA, 'hermes', 'skills');
       }
-      return join(home, '.hermes', 'skills');
+      return pathModule.join(home, '.hermes', 'skills');
     }
     default:
       throw new BrowsemuxError(`Unsupported harness: ${harness}`, {
@@ -211,16 +231,16 @@ async function directoriesEqual(left, right) {
     }
     if (leftEntry.isDirectory()) {
       if (!await directoriesEqual(
-        join(left, leftEntry.name),
-        join(right, rightEntry.name),
+        path.join(left, leftEntry.name),
+        path.join(right, rightEntry.name),
       )) {
         return false;
       }
       continue;
     }
     const [leftBody, rightBody] = await Promise.all([
-      readFile(join(left, leftEntry.name)),
-      readFile(join(right, rightEntry.name)),
+      readFile(path.join(left, leftEntry.name)),
+      readFile(path.join(right, rightEntry.name)),
     ]);
     if (!leftBody.equals(rightBody)) return false;
   }
