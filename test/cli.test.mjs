@@ -85,6 +85,7 @@ test('doctor honors backend overrides and reports readiness', async () => {
   assert.equal(result.ready, true);
   assert.equal(result.commands.agentBrowser.installed, true);
   assert.equal(result.commands.bsk.installed, true);
+  assert.deepEqual(result.nextSteps, []);
   assert.deepEqual(calls, [
     ['custom-agent-browser', '--version'],
     ['custom-bsk', '--version'],
@@ -113,6 +114,22 @@ test('doctor reports an unusable setup when no backend or provider is available'
   assert.equal(result.ready, false);
   assert.ok(result.issues.includes('No supported browser backend is installed.'));
   assert.ok(result.issues.includes('No supported decision-provider API key is set.'));
+  assert.equal(result.nextSteps.length, 2);
+  assert.match(result.nextSteps[0], /agent-browser/);
+  assert.match(result.nextSteps[1], /OPENROUTER_API_KEY/);
+});
+
+test('doctor suggests the key variable that a custom provider expects', async () => {
+  const result = await doctor({
+    apiKeyEnv: 'CUSTOM_PROVIDER_API_KEY',
+    env: {},
+    runProcessImpl: async (command) => ({ stdout: `${command} 1.0.0`, stderr: '' }),
+  });
+
+  assert.equal(result.ready, false);
+  assert.deepEqual(result.issues, ['No supported decision-provider API key is set.']);
+  assert.equal(result.nextSteps.length, 1);
+  assert.match(result.nextSteps[0], /CUSTOM_PROVIDER_API_KEY/);
 });
 
 test('removes provider credentials from browser subprocess environments', () => {

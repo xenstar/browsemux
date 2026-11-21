@@ -11,7 +11,7 @@ provider. Commands are shown for Windows PowerShell and for macOS or Linux.
 | Component | Requirement | Verification |
 | --- | --- | --- |
 | Node.js | 20 or newer | `node --version` |
-| Browsemux | Current `main` from GitHub | `browsemux --version` |
+| Browsemux | Latest release from npm | `browsemux --version` |
 | Browser backend | `agent-browser` or BSK | `agent-browser --version` or `bsk --version` |
 | Decision provider | TypeSafe, OpenRouter, or OpenAI-compatible key | `browsemux doctor` |
 
@@ -231,6 +231,7 @@ The output reports:
 
 - Node.js version
 - overall readiness and setup issues
+- `nextSteps`, the command or environment variable that fixes each issue
 - `agent-browser` availability and version
 - `bsk` availability and version
 - whether supported API-key environment variables are present

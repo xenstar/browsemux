@@ -1,6 +1,6 @@
 {
   "name": "browsemux",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A safer browser decision bridge for AI agents.",
   "author": "xenstar",
   "homepage": "https://github.com/xenstar/browsemux",

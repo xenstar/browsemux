@@ -349,16 +349,25 @@ export async function doctor({
   );
   environment.BSK_COMMAND = env.BSK_COMMAND ? 'set' : 'unset';
   const issues = [];
+  const nextSteps = [];
   if (!agentBrowser.installed && !bsk.installed) {
     issues.push('No supported browser backend is installed.');
+    nextSteps.push(
+      'Install one backend: npm install -g agent-browser then agent-browser install, ' +
+        'or install Tencent BrowserSkill for BSK.',
+    );
   }
   if (![...apiKeyNames].some((name) => env[name])) {
     issues.push('No supported decision-provider API key is set.');
+    nextSteps.push(
+      `Set a provider key in your shell: ${[...apiKeyNames].join(', ')}.`,
+    );
   }
   return {
     node: process.version,
     ready: issues.length === 0,
     issues,
+    nextSteps,
     commands: {
       agentBrowser,
       bsk,

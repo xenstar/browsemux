@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.3 - 2026-11-21
+
+- `browsemux doctor` now returns `nextSteps` alongside `issues`, so a missing
+  backend or provider key comes with the exact install command or environment
+  variable instead of only a description of the problem.
+- Added a short "If Something Fails" README section that points first-time
+  users to `doctor`, and documented `nextSteps` in the installation guide.
+- Corrected the stale installation prerequisite that still described installing
+  from `main` rather than from npm.
+
 ## 0.1.2 - 2026-11-21
 
 - Fixed Linux CI coverage for Windows skill paths by making the skill resolver

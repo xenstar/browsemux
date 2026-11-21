@@ -199,6 +199,20 @@ browsemux run --backend agent-browser --provider typesafe --url https://example.
 You should receive one JSON result. A real success includes
 `"status": "success"` plus evidence from the final page.
 
+## 🧯 If Something Fails
+
+Run this:
+
+```bash
+browsemux doctor
+```
+
+It tells you which part of the setup is missing and prints the exact command or
+environment variable that fixes it. The usual first-run causes are no browser
+backend, a missing API key in the shell that runs Browsemux, or Node.js older
+than 20. See [Installation](docs/installation.md#-troubleshooting) for the
+full symptom table and exit codes.
+
 ## 🧠 How It Works
 
 Here is the complete flow:
