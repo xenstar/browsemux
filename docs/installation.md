@@ -19,12 +19,12 @@ For the easiest first run, use `agent-browser` with TypeSafe System One / JEV.
 
 ## 📥 Install Browsemux
 
-### Recommended: global install from GitHub
+### Recommended: global install from npm
 
-For this pre-release, install the current public repository directly:
+Install the published package:
 
 ```bash
-npm install -g github:xenstar/browsemux
+npm install -g browsemux
 browsemux --version
 ```
 
@@ -315,7 +315,7 @@ restarting or reinstalling repeatedly.
 Update Browsemux:
 
 ```bash
-npm install -g github:xenstar/browsemux
+npm install -g browsemux
 ```
 
 Update `agent-browser`:

@@ -86,10 +86,10 @@ outside the initial scope.
 
 ### 1. Install Browsemux
 
-Recommended global install from GitHub:
+Recommended global install:
 
 ```bash
-npm install -g github:xenstar/browsemux
+npm install -g browsemux
 browsemux --version
 ```
 
