@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeSnapshot } from '../src/backends/agent-browser.mjs';
+import {
+  AgentBrowserBackend,
+  normalizeSnapshot,
+} from '../src/backends/agent-browser.mjs';
 import {
   BskBackend,
   BskCli,
@@ -23,6 +26,91 @@ test('normalizes an agent-browser snapshot', () => {
 
   assert.equal(observation.url, 'https://example.com/');
   assert.equal(observation.refs['@e1'].role, 'button');
+});
+
+test('agent-browser action command failures are effect-unknown', async () => {
+  const browser = new AgentBrowserBackend({
+    command: process.execPath,
+    timeoutMs: 1_000,
+  });
+  browser.commandPrefix = ['-e', 'process.exit(7)'];
+  browser.lastObservation = {
+    refs: { '@e1': { role: 'button', name: 'Continue' } },
+  };
+
+  await assert.rejects(
+    () => browser.action('CLICK', { target: '@e1' }),
+    (error) => error.code === 'EFFECT_UNKNOWN' && error.effectState === 'unknown',
+  );
+});
+
+test('agent-browser receives the configured sanitized environment', async () => {
+  let receivedEnv;
+  const browser = new AgentBrowserBackend({
+    command: 'agent-browser',
+    env: { PATH: '/bin' },
+    runProcessImpl: async (command, args, options) => {
+      receivedEnv = options.env;
+      return { stdout: '{}', stderr: '' };
+    },
+  });
+
+  await browser.run(['marker']);
+
+  assert.deepEqual(receivedEnv, { PATH: '/bin' });
+});
+
+test('agent-browser remains closable when opening fails after launch', async () => {
+  const calls = [];
+  const browser = new AgentBrowserBackend({
+    command: 'agent-browser',
+    runProcessImpl: async (command, args) => {
+      calls.push([command, ...args]);
+      if (args.includes('open')) {
+        throw new BrowsemuxError('open timed out', { code: 'PROCESS_TIMEOUT' });
+      }
+      return { stdout: '{}', stderr: '' };
+    },
+  });
+
+  await assert.rejects(() => browser.open('https://example.com'));
+  await browser.close();
+
+  assert.ok(calls.some((args) => args.includes('close')));
+});
+
+test('agent-browser skips cleanup when the executable cannot start', async () => {
+  const calls = [];
+  const browser = new AgentBrowserBackend({
+    command: 'agent-browser',
+    runProcessImpl: async (command, args) => {
+      calls.push([command, ...args]);
+      throw new BrowsemuxError('not found', { code: 'ENOENT' });
+    },
+  });
+
+  await assert.rejects(() => browser.open('https://example.com'));
+  const result = await browser.close();
+
+  assert.equal(result.alreadyClosed, true);
+  assert.equal(calls.length, 1);
+});
+
+test('agent-browser attach skips cleanup when the executable cannot start', async () => {
+  const calls = [];
+  const browser = new AgentBrowserBackend({
+    command: 'agent-browser',
+    runProcessImpl: async (command, args) => {
+      calls.push([command, ...args]);
+      throw new BrowsemuxError('not found', { code: 'ENOENT' });
+    },
+  });
+
+  await assert.rejects(() => browser.attach());
+  const result = await browser.close();
+
+  assert.equal(result.alreadyClosed, true);
+  assert.equal(calls.length, 1);
 });
 
 test('parses BSK refs and escaped names', () => {
@@ -65,6 +153,54 @@ test('BSK keeps the opened snapshot as the validated action base', async () => {
   const observation = await browser.open('https://example.com');
   assert.equal(observation.refs['@e1'].name, 'Continue');
   await browser.action('CLICK', { target: '@e1' });
+});
+
+test('BSK remains closable when opening fails after dispatch', async () => {
+  const calls = [];
+  const cli = new FakeBskCli((args) => {
+    calls.push(args);
+    if (args[0] === 'open') {
+      throw new BrowsemuxError('open timed out', { code: 'PROCESS_TIMEOUT' });
+    }
+    if (args[0] === 'close') return { closed: true };
+    throw new Error(`unexpected command: ${args.join(' ')}`);
+  });
+  const browser = new BskBackend({ cli, scope: 'test' });
+
+  await assert.rejects(() => browser.open('https://example.com'));
+  await browser.close();
+
+  assert.ok(calls.some((args) => args[0] === 'close' && args.includes('--scope')));
+});
+
+test('BSK skips cleanup when the executable cannot start', async () => {
+  const calls = [];
+  const cli = new FakeBskCli((args) => {
+    calls.push(args);
+    throw new BrowsemuxError('not found', { code: 'ENOENT' });
+  });
+  const browser = new BskBackend({ cli, scope: 'test' });
+
+  await assert.rejects(() => browser.open('https://example.com'));
+  const result = await browser.close();
+
+  assert.equal(result.alreadyClosed, true);
+  assert.equal(calls.length, 1);
+});
+
+test('BSK attach skips cleanup when the executable cannot start', async () => {
+  const calls = [];
+  const cli = new FakeBskCli((args) => {
+    calls.push(args);
+    throw new BrowsemuxError('not found', { code: 'ENOENT' });
+  });
+  const browser = new BskBackend({ cli, scope: 'test' });
+
+  await assert.rejects(() => browser.attach());
+  const result = await browser.close();
+
+  assert.equal(result.alreadyClosed, true);
+  assert.equal(calls.length, 1);
 });
 
 test('BSK rejects a stale target before dispatch', async () => {
@@ -123,6 +259,44 @@ test('BSK step returns its post-action observation without a sync command', asyn
   assert.equal(acted.observation.url, 'https://example.com/docs');
   assert.equal(acted.observation.refs['@e1'].name, 'Documentation');
   assert.deepEqual(cli.calls.map((args) => args[0]), ['open', 'step', 'tab']);
+});
+
+test('BSK uses the tab reported by a step before reading its URL', async () => {
+  const cli = new FakeBskCli((args) => {
+    if (args[0] === 'open') {
+      return {
+        session_id: 'session-1',
+        tab_id: 7,
+        url: 'https://example.com/',
+        vom: '@vom 1\n  @e1 button "Open details"',
+      };
+    }
+    if (args[0] === 'step') {
+      return {
+        action: { result: { ok: true } },
+        post: {
+          tab_id: 8,
+          text: '@vom 1\n  @e2 heading "Details"',
+        },
+      };
+    }
+    if (args[0] === 'tab') {
+      return {
+        tabs: [
+          { tab_id: 7, url: 'https://example.com/', title: 'Source' },
+          { tab_id: 8, url: 'https://example.com/details', title: 'Details' },
+        ],
+      };
+    }
+    throw new Error(`unexpected command: ${args.join(' ')}`);
+  });
+  const browser = new BskBackend({ cli, scope: 'test' });
+
+  await browser.open('https://example.com');
+  const result = await browser.actAndObserve('CLICK', { target: '@e1' });
+
+  assert.equal(result.observation.url, 'https://example.com/details');
+  assert.equal(result.observation.metadata.tabId, 8);
 });
 
 test('BSK partial step reconciles with sync without replaying the action', async () => {
@@ -292,6 +466,30 @@ test('BSK actAndObserve falls back for operations without a step mapping', async
 
   assert.equal(acted.actionResult.effect, 'settled');
   assert.deepEqual(cli.calls.map((args) => args[0]), ['open', 'wheel', 'sync', 'tab']);
+});
+
+test('BSK fallback action failures are effect-unknown', async () => {
+  const cli = new FakeBskCli((args) => {
+    if (args[0] === 'open') {
+      return {
+        session_id: 'session-1',
+        tab_id: 7,
+        url: 'https://example.com/',
+        vom: '@vom 1\n  @e1 link "Learn more"',
+      };
+    }
+    if (args[0] === 'wheel') {
+      throw new BrowsemuxError('wheel timed out', { code: 'PROCESS_TIMEOUT' });
+    }
+    throw new Error(`unexpected command: ${args.join(' ')}`);
+  });
+  const browser = new BskBackend({ cli, scope: 'test' });
+
+  await browser.open('https://example.com');
+  await assert.rejects(
+    () => browser.actAndObserve('SCROLL_DOWN'),
+    (error) => error.code === 'EFFECT_UNKNOWN' && error.effectState === 'unknown',
+  );
 });
 
 test('BSK step commands use the documented protocol parameter fields', () => {

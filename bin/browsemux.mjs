@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { helpText, runCli } from '../src/cli.mjs';
+import { exitCodeForStatus } from '../src/status.mjs';
 
 const controller = new AbortController();
 const abort = () => controller.abort();
@@ -16,15 +17,15 @@ try {
     process.exitCode = 0;
   } else if (output.doctor) {
     process.stdout.write(`${JSON.stringify(output.doctor, null, 2)}\n`);
-    process.exitCode = 0;
+    process.exitCode = output.doctor.ready ? 0 : 1;
   } else if (output.skill) {
     process.stdout.write(`${JSON.stringify(output.skill, null, 2)}\n`);
     process.exitCode = 0;
   } else if (!process.argv.includes('--jsonl')) {
     process.stdout.write(`${JSON.stringify(output.result, null, 2)}\n`);
-    process.exitCode = exitCodeFor(output.result.status);
+    process.exitCode = exitCodeForStatus(output.result.status);
   } else {
-    process.exitCode = exitCodeFor(output.result.status);
+    process.exitCode = exitCodeForStatus(output.result.status);
   }
 } catch (error) {
   const diagnostic = diagnosticText(error);
@@ -43,22 +44,6 @@ try {
 } finally {
   process.removeListener('SIGINT', abort);
   process.removeListener('SIGTERM', abort);
-}
-
-function exitCodeFor(status) {
-  switch (status) {
-    case 'success':
-    case 'completed-unverified':
-      return 0;
-    case 'blocked':
-      return 3;
-    case 'effect-unknown':
-      return 4;
-    case 'limit':
-      return 5;
-    default:
-      return 1;
-  }
 }
 
 function diagnosticText(error) {

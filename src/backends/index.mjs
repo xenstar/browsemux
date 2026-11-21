@@ -16,6 +16,7 @@ export function createBackend(name, options = {}) {
         cli: options.cli ?? new BskCli({
           command: options.bskCommand,
           defaultTimeoutMs: options.timeoutMs,
+          env: options.env,
         }),
       });
     default:

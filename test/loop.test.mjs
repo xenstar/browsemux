@@ -202,6 +202,48 @@ test('rejects an identical action when the page did not change', async () => {
   assert.ok(result.history.some((entry) => entry.reason === 'NO_OBSERVED_PROGRESS'));
 });
 
+test('allows the same semantic action on a different observation', async () => {
+  const pages = [
+    {
+      ...firstPage,
+      url: 'https://example.com/page-1',
+      snapshot: '- link "Next"',
+      refs: { '@e1': { role: 'link', name: 'Next' } },
+    },
+    {
+      ...firstPage,
+      url: 'https://example.com/page-2',
+      snapshot: '- link "Next"',
+      refs: { '@e1': { role: 'link', name: 'Next' } },
+    },
+    {
+      ...firstPage,
+      url: 'https://example.com/page-3',
+      snapshot: '- heading "End"',
+      refs: {},
+    },
+  ];
+  const browser = new FakeBrowser([pages[1], pages[2]]);
+  const provider = new SequenceProvider([
+    { proposal: { operation: 'CLICK', target: '@e1' } },
+    { proposal: { operation: 'CLICK', target: '@e1' } },
+  ]);
+
+  const result = await runLoop({
+    goal: 'Advance two pages',
+    browser,
+    provider,
+    initialObservation: pages[0],
+    successCriteria: { urlContains: '/page-3' },
+    repeatLimit: 1,
+    maxSteps: 3,
+  });
+
+  assert.equal(result.status, 'success');
+  assert.equal(result.actionCount, 2);
+  assert.equal(browser.actions.length, 2);
+});
+
 test('rejects an unverified DONE proposal when success criteria are configured', async () => {
   const browser = new FakeBrowser([finalPage]);
   const provider = new SequenceProvider([

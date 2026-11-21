@@ -18,6 +18,8 @@ export class AgentBrowserBackend {
     settleTimeoutMs = 2_000,
     settlePollMs = 100,
     sleepImpl = sleep,
+    env = process.env,
+    runProcessImpl = runProcess,
   } = {}) {
     if (!Number.isInteger(settleTimeoutMs) || settleTimeoutMs < 0) {
       throw new BrowsemuxError('settleTimeoutMs must be a non-negative integer', {
@@ -38,21 +40,35 @@ export class AgentBrowserBackend {
     this.settleTimeoutMs = settleTimeoutMs;
     this.settlePollMs = settlePollMs;
     this.sleep = sleepImpl;
+    this.env = env;
+    this.runProcess = runProcessImpl;
     this.lastObservation = null;
     this.opened = false;
   }
 
   async open(url, { signal } = {}) {
     const destination = validateHttpUrl(url);
-    await this.run(['open', destination], { signal });
     this.opened = true;
+    try {
+      await this.run(['open', destination], { signal });
+    } catch (error) {
+      if (isStartFailure(error)) {
+        this.opened = false;
+      }
+      throw error;
+    }
     this.lastObservation = null;
     return this.snapshot({ signal });
   }
 
   async attach({ signal } = {}) {
     this.opened = true;
-    return this.snapshot({ signal });
+    try {
+      return await this.snapshot({ signal });
+    } catch (error) {
+      if (isStartFailure(error)) this.opened = false;
+      throw error;
+    }
   }
 
   async snapshot({ signal } = {}) {
@@ -73,6 +89,7 @@ export class AgentBrowserBackend {
         });
       } catch (error) {
         if (isAbort(error, signal)) throw error;
+        if (isStartFailure(error)) throw error;
         lastError = error;
       }
       const remaining = deadline - Date.now();
@@ -100,7 +117,17 @@ export class AgentBrowserBackend {
     }
 
     const args = actionArgs(operation, { target, value });
-    await this.run(args, { signal });
+    try {
+      await this.run(args, { signal });
+    } catch (error) {
+      if (isProcessFailure(error)) {
+        throw unknownEffectError(
+          `agent-browser ${operation} did not return a usable result`,
+          error,
+        );
+      }
+      throw error;
+    }
     return { dispatched: true, effect: 'observed-next' };
   }
 
@@ -116,10 +143,10 @@ export class AgentBrowserBackend {
   }
 
   async run(args, { signal, timeoutMs = this.timeoutMs } = {}) {
-    const result = await runProcess(
+    const result = await this.runProcess(
       this.command,
       [...this.commandPrefix, '--session', this.session, ...args],
-      { signal, timeoutMs },
+      { signal, timeoutMs, env: this.env },
     );
     return result;
   }
@@ -235,4 +262,22 @@ function refNumber(value) {
 
 function isAbort(error, signal) {
   return signal?.aborted || error?.code === 'ABORT_ERR' || error?.name === 'AbortError';
+}
+
+function isProcessFailure(error) {
+  return ['PROCESS_EXIT', 'PROCESS_TIMEOUT'].includes(error?.code);
+}
+
+function isStartFailure(error) {
+  return ['PROCESS_START_ERROR', 'ENOENT'].includes(error?.code);
+}
+
+function unknownEffectError(message, cause) {
+  const error = new BrowsemuxError(message, {
+    code: 'EFFECT_UNKNOWN',
+    cause,
+    details: cause?.details,
+  });
+  error.effectState = 'unknown';
+  return error;
 }

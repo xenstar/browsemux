@@ -378,6 +378,20 @@ The result contains:
 - bounded action history
 - compact handoff for the parent harness
 
+Exit codes:
+
+| Code | Status | Meaning |
+| ---: | --- | --- |
+| `0` | `success` | Deterministic success criteria matched. |
+| `2` | `completed-unverified` | The model claimed completion, but no success check proved it. |
+| `3` | `blocked` | The browser or model reported a required human decision or blocker. |
+| `4` | `effect-unknown` | A write action may have executed; do not replay it blindly. |
+| `5` | `limit` | The step or recovery budget ended before completion. |
+| `1` | `error` | Setup, provider, browser, or proposal failure. |
+
+`completed-unverified` is intentionally nonzero so scripts do not treat an
+unverified model claim as success.
+
 <a id="safety"></a>
 ## 🔐 Safety
 
@@ -387,6 +401,7 @@ The result contains:
 - Navigation accepts only HTTP and HTTPS.
 - Repeated semantic actions are bounded.
 - Sensitive supplied values are redacted from provider metadata.
+- Provider API keys are removed from browser subprocess environments.
 - Human approval is still required for payments, destructive account actions,
   uploads, MFA, and CAPTCHA.
 

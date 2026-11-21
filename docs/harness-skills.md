@@ -62,6 +62,12 @@ may be cached for the lifetime of the current session.
 The `agents` root is the shared portable convention. Some harnesses discover it
 directly; others need their own copy.
 
+## Exit Codes
+
+The CLI exits `0` only for verified success. `completed-unverified` exits `2`,
+blocked exits `3`, effect-unknown exits `4`, limit exits `5`, and errors exit
+`1`. Harnesses must inspect both the status and exit code.
+
 ## Routing Behavior
 
 The skill prefers Browsemux when all of these are true:

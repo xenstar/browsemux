@@ -216,15 +216,35 @@ Run Browsemux's local checks:
 browsemux doctor
 ```
 
+`doctor` exits `0` only when at least one browser backend and one provider key
+are available. Otherwise it returns `ready: false`, lists the missing setup, and
+exits `1`.
+
+If an OpenAI-compatible provider uses a custom key variable, pass the same
+variable to `doctor`:
+
+```bash
+browsemux doctor --api-key-env CUSTOM_PROVIDER_API_KEY
+```
+
 The output reports:
 
 - Node.js version
+- overall readiness and setup issues
 - `agent-browser` availability and version
 - `bsk` availability and version
 - whether supported API-key environment variables are present
 
 `doctor` does not call the provider, validate credits, or inspect the BSK
 extension connection. Run a small task afterward.
+
+Override backend commands when they are outside `PATH`:
+
+```bash
+browsemux doctor \
+  --browser-command "/path/to/agent-browser" \
+  --bsk-command "/path/to/bsk"
+```
 
 ### agent-browser smoke test
 
@@ -281,6 +301,10 @@ Use `--keep-open` only when a human needs to take over the browser session.
 | BSK cannot connect | `bsk doctor` | Confirm the extension is installed, enabled, and connected in Chrome or Edge |
 | Stale page ref | Read the result diagnostics | Rerun with a fresh observation; refs must come from the latest snapshot |
 | Repeated action rejected | Review `reason: "NO_OBSERVED_PROGRESS"` | Supply a different target or correct the task goal |
+
+Exit codes are `0` success, `2` completed-unverified, `3` blocked, `4`
+effect-unknown, `5` limit, and `1` error. Treat `2` as a verification failure,
+not success.
 
 BSK errors can differ between local, remote, and harness-managed daemon
 environments. Follow the exact hint printed by `bsk doctor` rather than

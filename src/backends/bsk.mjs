@@ -9,6 +9,7 @@ export class BskCli {
     command = process.env.BSK_COMMAND ?? 'bsk',
     defaultTimeoutMs = 45_000,
     runProcessImpl = runProcess,
+    env = process.env,
   } = {}) {
     if (!command || typeof command !== 'string') {
       throw new BrowsemuxError('BSK command must be a non-empty string', {
@@ -18,16 +19,25 @@ export class BskCli {
     this.command = command;
     this.defaultTimeoutMs = defaultTimeoutMs;
     this.runProcess = runProcessImpl;
+    this.env = env;
   }
 
   async run(args, { signal, timeoutMs = this.defaultTimeoutMs } = {}) {
-    const result = await this.runProcess(this.command, args, { signal, timeoutMs });
+    const result = await this.runProcess(this.command, args, {
+      signal,
+      timeoutMs,
+      env: this.env,
+    });
     return parseJsonOutput(result.stdout);
   }
 
   async runAllowFailure(args, { signal, timeoutMs = this.defaultTimeoutMs } = {}) {
     try {
-      const result = await this.runProcess(this.command, args, { signal, timeoutMs });
+      const result = await this.runProcess(this.command, args, {
+        signal,
+        timeoutMs,
+        env: this.env,
+      });
       return {
         payload: parseJsonOutput(result.stdout),
         exitCode: 0,
@@ -91,17 +101,24 @@ export class BskBackend {
 
   async open(url, { signal } = {}) {
     const destination = validateHttpUrl(url);
-    const payload = await this.cli.run([
-      'open',
-      destination,
-      ...this.sessionArgs(),
-      '--json',
-      '--no-focus',
-      '--max-tokens',
-      String(this.maxObservationTokens),
-      '--timeout-ms',
-      String(this.settleTimeoutMs),
-    ], { signal });
+    this.opened = true;
+    let payload;
+    try {
+      payload = await this.cli.run([
+        'open',
+        destination,
+        ...this.sessionArgs(),
+        '--json',
+        '--no-focus',
+        '--max-tokens',
+        String(this.maxObservationTokens),
+        '--timeout-ms',
+        String(this.settleTimeoutMs),
+      ], { signal });
+    } catch (error) {
+      if (isStartFailure(error)) this.opened = false;
+      throw error;
+    }
 
     const sessionId = payload.session_id ?? payload.sessionId;
     if (!sessionId) {
@@ -110,9 +127,8 @@ export class BskBackend {
       });
     }
     this.sessionId = String(sessionId);
-    if (payload.tab_id !== undefined) this.tabId = Number(payload.tab_id);
+    this.rememberTabId(payload.tab_id);
     this.lastUrl = String(payload.url ?? destination);
-    this.opened = true;
 
     const snapshot = String(payload.vom ?? payload.text ?? '');
     if (!snapshot.trim()) return this.snapshot({ signal });
@@ -129,7 +145,12 @@ export class BskBackend {
 
   async attach({ signal } = {}) {
     this.opened = true;
-    return this.snapshot({ signal });
+    try {
+      return await this.snapshot({ signal });
+    } catch (error) {
+      if (isStartFailure(error)) this.opened = false;
+      throw error;
+    }
   }
 
   async snapshot({ signal } = {}) {
@@ -151,6 +172,7 @@ export class BskBackend {
           '--max-tokens',
           String(this.maxObservationTokens),
         ], { signal, timeoutMs: remaining(this.now, deadline) });
+        this.rememberTabId(payload.tab_id);
         const text = String(payload.text ?? payload.vom ?? '');
         if (text.trim()) {
           const tab = await this.readTab({ signal, deadline });
@@ -165,6 +187,7 @@ export class BskBackend {
         }
       } catch (error) {
         if (isAbort(error, signal)) throw error;
+        if (isStartFailure(error)) throw error;
         lastError = error;
       }
       const delay = Math.min(this.settlePollMs, Math.max(0, deadline - this.now()));
@@ -183,7 +206,17 @@ export class BskBackend {
   } = {}) {
     this.validateTarget(operation, target);
     const command = this.actionCommand(operation, { target, value });
-    await this.cli.run(command, { signal, timeoutMs: 35_000 });
+    try {
+      await this.cli.run(command, { signal, timeoutMs: 35_000 });
+    } catch (error) {
+      if (isProcessFailure(error)) {
+        throw unknownEffectError(
+          `BSK ${operation} did not return a usable result`,
+          error,
+        );
+      }
+      throw error;
+    }
     const observation = await this.settleAfterAction({ signal });
     this.cachedObservation = observation;
     return {
@@ -358,6 +391,7 @@ export class BskBackend {
 
   async observationFromPost(post, { signal } = {}) {
     const deadline = this.now() + this.settleTimeoutMs;
+    this.rememberTabId(post.tab_id);
     const tab = await this.readTab({ signal, deadline });
     const observation = normalizeObservation({
       url: tab.url || this.lastUrl,
@@ -392,6 +426,7 @@ export class BskBackend {
           '--timeout-ms',
           String(remaining(this.now, deadline)),
         ], { signal, timeoutMs: remaining(this.now, deadline) + 2_000 });
+        this.rememberTabId(payload.tab_id);
         const text = String(payload.vom ?? payload.text ?? '');
         if (text.trim()) {
           const tab = await this.readTab({ signal, deadline });
@@ -434,7 +469,7 @@ export class BskBackend {
       ?? tabs.find((item) => item.active)
       ?? tabs[0];
     if (!tab.url) throw new BrowsemuxError('BSK tab URL is not ready', { code: 'URL_NOT_READY' });
-    this.tabId = Number(tab.tab_id ?? this.tabId);
+    this.rememberTabId(tab.tab_id);
     return tab;
   }
 
@@ -449,6 +484,12 @@ export class BskBackend {
   remember(observation) {
     if (observation.url) this.lastUrl = observation.url;
     this.lastObservation = observation;
+  }
+
+  rememberTabId(value) {
+    if (value === undefined || value === null || value === '') return;
+    const tabId = Number(value);
+    if (Number.isInteger(tabId) && tabId >= 0) this.tabId = tabId;
   }
 }
 
@@ -507,6 +548,10 @@ function isAbort(error, signal) {
 
 function isProcessFailure(error) {
   return ['PROCESS_EXIT', 'PROCESS_TIMEOUT'].includes(error?.code);
+}
+
+function isStartFailure(error) {
+  return ['PROCESS_START_ERROR', 'ENOENT'].includes(error?.code);
 }
 
 function unknownEffectError(message, cause) {

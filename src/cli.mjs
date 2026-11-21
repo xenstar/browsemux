@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolveAgentBrowserInvocation } from './backends/agent-browser.mjs';
@@ -10,7 +11,9 @@ import { installBrowsemuxSkill, skillSourcePath } from './skills.mjs';
 import { parseJsonOption } from './util/json.mjs';
 import { runProcess } from './util/process.mjs';
 
-const VERSION = '0.1.0';
+export const VERSION = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+).version;
 
 const VALUE_OPTIONS = new Map([
   ['--backend', 'backend'],
@@ -140,7 +143,16 @@ export async function runCli(argv, { signal } = {}) {
   const options = parseArgs(argv);
   if (options.help) return { help: true };
   if (options.version) return { version: VERSION };
-  if (options.command === 'doctor') return { doctor: await doctor(signal) };
+  if (options.command === 'doctor') {
+    return {
+      doctor: await doctor({
+        signal,
+        agentBrowserCommand: options.browserCommand,
+        bskCommand: options.bskCommand,
+        apiKeyEnv: options.apiKeyEnv,
+      }),
+    };
+  }
   if (options.command === 'skill') {
     if (options.skillAction === 'path') {
       return {
@@ -177,7 +189,10 @@ export async function runCli(argv, { signal } = {}) {
     });
   }
 
-  const browser = createBackend(options.backend, backendOptions(options));
+  const browser = createBackend(options.backend, {
+    ...backendOptions(options),
+    env: browserEnvironment(process.env, apiKeyEnv),
+  });
   const provider = createDecisionProvider(options.provider, {
     endpoint: options.endpoint,
     apiKey,
@@ -307,31 +322,59 @@ Examples:
 `;
 }
 
-export async function doctor(signal) {
+export async function doctor({
+  signal,
+  agentBrowserCommand,
+  bskCommand,
+  apiKeyEnv,
+  env = process.env,
+  runProcessImpl = runProcess,
+} = {}) {
+  const agentBrowserInvocation = resolveAgentBrowserInvocation(
+    agentBrowserCommand ?? env.BROWSEMUX_AGENT_BROWSER_COMMAND,
+  );
+  const resolvedBskCommand = bskCommand ?? env.BSK_COMMAND ?? 'bsk';
   const [agentBrowser, bsk] = await Promise.all([
-    commandVersion(resolveAgentBrowserInvocation(), signal),
-    commandVersion('bsk', signal),
+    commandVersion(agentBrowserInvocation, { signal, runProcessImpl }),
+    commandVersion(resolvedBskCommand, { signal, runProcessImpl }),
   ]);
+  const apiKeyNames = new Set([
+    'TYPESAFE_API_KEY',
+    'OPENROUTER_API_KEY',
+    'OPENAI_API_KEY',
+    apiKeyEnv,
+  ].filter(Boolean));
+  const environment = Object.fromEntries(
+    [...apiKeyNames].map((name) => [name, Boolean(env[name])]),
+  );
+  environment.BSK_COMMAND = env.BSK_COMMAND ? 'set' : 'unset';
+  const issues = [];
+  if (!agentBrowser.installed && !bsk.installed) {
+    issues.push('No supported browser backend is installed.');
+  }
+  if (![...apiKeyNames].some((name) => env[name])) {
+    issues.push('No supported decision-provider API key is set.');
+  }
   return {
     node: process.version,
+    ready: issues.length === 0,
+    issues,
     commands: {
       agentBrowser,
       bsk,
     },
-    environment: {
-      TYPESAFE_API_KEY: Boolean(process.env.TYPESAFE_API_KEY),
-      OPENROUTER_API_KEY: Boolean(process.env.OPENROUTER_API_KEY),
-      OPENAI_API_KEY: Boolean(process.env.OPENAI_API_KEY),
-      BSK_COMMAND: process.env.BSK_COMMAND ? 'set' : 'unset',
-    },
+    environment,
   };
 }
 
-async function commandVersion(invocation, signal) {
+async function commandVersion(invocation, {
+  signal,
+  runProcessImpl,
+} = {}) {
   const command = typeof invocation === 'string' ? invocation : invocation.command;
   const prefix = typeof invocation === 'string' ? [] : invocation.prefix;
   try {
-    const result = await runProcess(command, [...prefix, '--version'], {
+    const result = await runProcessImpl(command, [...prefix, '--version'], {
       signal,
       timeoutMs: 5_000,
     });
@@ -398,6 +441,19 @@ function defaultApiKeyEnv(provider) {
   if (provider === 'typesafe') return 'TYPESAFE_API_KEY';
   if (provider === 'openrouter') return 'OPENROUTER_API_KEY';
   return 'OPENAI_API_KEY';
+}
+
+export function browserEnvironment(env, apiKeyEnv) {
+  const sanitized = { ...env };
+  for (const name of [
+    'TYPESAFE_API_KEY',
+    'OPENROUTER_API_KEY',
+    'OPENAI_API_KEY',
+    apiKeyEnv,
+  ]) {
+    if (name) delete sanitized[name];
+  }
+  return sanitized;
 }
 
 function parseInteger(name, value) {

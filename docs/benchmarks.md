@@ -163,10 +163,6 @@ node bench/runner.mjs \
 Query parameters, content, and states may vary when using another machine,
 browser build, provider route, or model.
 
-Measured on 2026-11-21 on Windows with Node.js `v24.22.3`,
-`agent-browser` `0.43.0`, BSK `0.5.0`, and OpenRouter Decisions using
-`typesafe/jev-1.14`.
-
 ## Earlier One-Click Baseline
 
 Public task:
@@ -289,9 +285,9 @@ classification modes.
 
 | Metric | Value |
 | --- | ---: |
-| Packed package | approximately 45 KB |
-| Unpacked package | approximately 161 KB |
-| Packaged files | 38 |
+| Packed package | approximately 46.5 KB |
+| Unpacked package | approximately 167.2 KB |
+| Packaged files | 39 |
 | Runtime dependencies | 0 |
 
 ## Limitations

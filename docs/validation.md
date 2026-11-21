@@ -11,7 +11,7 @@ Environment:
 Automated tests:
 
 ```text
-44 passed
+65 passed
 0 failed
 ```
 
@@ -78,8 +78,22 @@ After the `bsk step` integration, three live samples all reached
 | Separate observation | 0 ms |
 
 A final smoke test after hardening uncertain-effect handling also succeeded.
-The final `agent-browser` smoke test succeeded through the unchanged fallback
-path.
+Both final live checks completed a one-click task in 4,394 ms with
+`agent-browser` and 3,586 ms with BSK, each with one executed action and
+`status: "success"`.
+
+The packed release artifact was then installed into a clean temporary project.
+`browsemux --version`, `browsemux skill path`, and `browsemux doctor` all
+passed. Live checks from that installed artifact reached the same final URL:
+
+| Backend | Status | Actions | Total time | Decision time | Action time |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `agent-browser` | `success` | 1 | 5,944 ms | 3,034 ms | 135 ms |
+| BSK | `success` | 1 | 3,966 ms | 3,091 ms | 873 ms |
+
+One preceding `agent-browser` attempt failed in the provider request before
+any browser action; the immediate identical rerun succeeded. This is a
+transport-variance observation, not a benchmark result.
 
 See [benchmarks.md](benchmarks.md) for the repeated backend benchmark,
 direct-harness A/B comparison, two-action flow, and forvela comparison.

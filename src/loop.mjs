@@ -52,7 +52,8 @@ export async function runLoop({
   let invalidAttempts = 0;
   let lastExecutedSignature = null;
   let lastExecutedTarget = null;
-  let lastExecutedState = null;
+  let lastActionSourceState = null;
+  let lastActionResultState = null;
   let status = 'limit';
   let reasonCode = 'MAX_STEPS';
   let reason;
@@ -67,8 +68,8 @@ export async function runLoop({
         observation = await browser.snapshot({ signal });
         timings.observationMs += elapsed(observeStarted);
         needsObservation = false;
-        if (lastExecutedSignature && lastExecutedState === null) {
-          lastExecutedState = observationIdentity(observation);
+        if (lastExecutedSignature && lastActionResultState === null) {
+          lastActionResultState = observationIdentity(observation);
         }
         emit(onEvent, {
           type: 'observation',
@@ -120,7 +121,8 @@ export async function runLoop({
             avoid: recovery?.avoid ?? [],
             avoidRefs: [...new Set(recovery?.avoidRefs ?? [])],
           };
-          if (lastExecutedTarget && lastExecutedState === observationIdentity(observation)) {
+          if (lastExecutedTarget
+            && lastActionSourceState === observationIdentity(observation)) {
             recovery.avoidRefs = [...new Set([...recovery.avoidRefs, lastExecutedTarget])];
           }
           history.push(historyEntry({
@@ -212,9 +214,10 @@ export async function runLoop({
 
       invalidAttempts = 0;
       const signature = semanticSignature(validated, observation);
+      const sourceState = observationIdentity(observation);
       if (signature === lastExecutedSignature
         && validated.target === lastExecutedTarget
-        && lastExecutedState === observationIdentity(observation)) {
+        && lastActionSourceState === sourceState) {
         recovery = {
           reason: 'NO_OBSERVED_PROGRESS',
           message: 'The same action did not change the current page. Choose a different target or operation.',
@@ -242,7 +245,8 @@ export async function runLoop({
         });
         continue;
       }
-      const repetitions = signatureCounts.get(signature) ?? 0;
+      const stateSignature = `${observationIdentity(observation)}\n${signature}`;
+      const repetitions = signatureCounts.get(stateSignature) ?? 0;
       if (repetitions >= repeatLimit) {
         recovery = {
           reason: 'REPEATED_ACTION',
@@ -270,7 +274,7 @@ export async function runLoop({
         });
         continue;
       }
-      signatureCounts.set(signature, repetitions + 1);
+      signatureCounts.set(stateSignature, repetitions + 1);
       recovery = undefined;
       emit(onEvent, {
         type: 'validation',
@@ -305,7 +309,8 @@ export async function runLoop({
           observation = acted.observation;
           lastExecutedSignature = signature;
           lastExecutedTarget = validated.target ?? null;
-          lastExecutedState = observationIdentity(observation);
+          lastActionSourceState = sourceState;
+          lastActionResultState = observationIdentity(observation);
           needsObservation = false;
           emit(onEvent, {
             type: 'observation',
@@ -317,7 +322,8 @@ export async function runLoop({
         } else {
           lastExecutedSignature = signature;
           lastExecutedTarget = validated.target ?? null;
-          lastExecutedState = null;
+          lastActionSourceState = sourceState;
+          lastActionResultState = null;
           needsObservation = true;
         }
         emit(onEvent, {
