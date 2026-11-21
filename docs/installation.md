@@ -61,6 +61,34 @@ For a local linked install:
 npm unlink -g browsemux
 ```
 
+## 🧠 Install the Harness Skill
+
+Install the portable routing skill after Browsemux itself:
+
+```bash
+browsemux skill install --harness all
+```
+
+The skill directs compatible harness agents to use `browsemux run` for bounded
+browser tasks rather than issuing raw `agent-browser` or `bsk` commands one at a
+time.
+
+Install selected harnesses:
+
+```bash
+browsemux skill install --harness codex,claude,cursor,opencode,hermes
+```
+
+Install only into the current project:
+
+```bash
+browsemux skill install --harness opencode --scope project
+```
+
+Start a new harness session after installing. See
+[Harness skills](harness-skills.md) for paths, updates, exceptions, and
+verification.
+
 ## 🌐 Install a Browser Backend
 
 Choose one backend. Browsemux can switch later without changing the harness

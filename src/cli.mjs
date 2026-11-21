@@ -6,6 +6,7 @@ import { createDecisionProvider } from './decisions/index.mjs';
 import { BrowsemuxError, errorResult } from './errors.mjs';
 import { normalizeInputs } from './inputs.mjs';
 import { runLoop } from './loop.mjs';
+import { installBrowsemuxSkill, skillSourcePath } from './skills.mjs';
 import { parseJsonOption } from './util/json.mjs';
 import { runProcess } from './util/process.mjs';
 
@@ -39,6 +40,8 @@ const VALUE_OPTIONS = new Map([
   ['--bsk-scope', 'bskScope'],
   ['--bsk-session', 'bskSession'],
   ['--bsk-max-tokens', 'bskMaxTokens'],
+  ['--harness', 'harness'],
+  ['--scope', 'skillScope'],
 ]);
 
 const BOOLEAN_OPTIONS = new Map([
@@ -50,6 +53,7 @@ const BOOLEAN_OPTIONS = new Map([
   ['-h', 'help'],
   ['--version', 'version'],
   ['-V', 'version'],
+  ['--force', 'force'],
 ]);
 
 const INTEGER_OPTIONS = new Set([
@@ -70,15 +74,25 @@ const SUPPORTED_PROVIDERS = new Set(['typesafe', 'openrouter', 'openai']);
 export function parseArgs(argv) {
   const args = [...argv];
   let command = 'run';
+  let skillAction = 'install';
   if (args[0] && !args[0].startsWith('-')) {
     command = args.shift();
+    if (command === 'skill' && args[0] && !args[0].startsWith('-')) {
+      skillAction = args.shift();
+    }
   }
-  if (!['run', 'doctor'].includes(command)) {
+  if (!['run', 'doctor', 'skill'].includes(command)) {
     throw new BrowsemuxError(`Unknown command: ${command}`, { code: 'INVALID_ARGUMENTS' });
+  }
+  if (command === 'skill' && !['install', 'path'].includes(skillAction)) {
+    throw new BrowsemuxError(`Unknown skill command: ${skillAction}`, {
+      code: 'INVALID_ARGUMENTS',
+    });
   }
 
   const options = {
     command,
+    skillAction,
     backend: 'agent-browser',
     provider: 'typesafe',
     maxSteps: 12,
@@ -90,9 +104,12 @@ export function parseArgs(argv) {
     decisionTimeoutMs: 30_000,
     settleTimeoutMs: 6_000,
     bskMaxTokens: 4_000,
+    harness: 'all',
+    skillScope: 'user',
     structuredOutput: 'json_object',
     attach: false,
     keepOpen: false,
+    force: false,
     json: false,
     jsonl: false,
     help: false,
@@ -124,6 +141,26 @@ export async function runCli(argv, { signal } = {}) {
   if (options.help) return { help: true };
   if (options.version) return { version: VERSION };
   if (options.command === 'doctor') return { doctor: await doctor(signal) };
+  if (options.command === 'skill') {
+    if (options.skillAction === 'path') {
+      return {
+        skill: {
+          action: 'path',
+          source: skillSourcePath(),
+        },
+      };
+    }
+    return {
+      skill: {
+        action: 'install',
+        ...await installBrowsemuxSkill({
+          harnesses: options.harness,
+          scope: options.skillScope,
+          force: options.force,
+        }),
+      },
+    };
+  }
   validateOptions(options);
 
   const inputs = normalizeInputs(parseJsonOption(options.inputsJson, '--inputs-json'));
@@ -207,6 +244,8 @@ Usage:
   browsemux run --backend <name> --provider <name> --url <url> --goal <text> [options]
   browsemux run --backend bsk --attach --bsk-scope <scope> --goal <text> [options]
   browsemux doctor [--json]
+  browsemux skill install [--harness <names>] [--scope user|project] [--force]
+  browsemux skill path
 
 Backends:
   agent-browser               agent-browser CLI session
@@ -255,10 +294,16 @@ BSK options:
   --bsk-session <id>          Existing BSK session ID
   --bsk-max-tokens <n>        BSK observation token budget (default: 4000)
 
+Harness skill options:
+  --harness <names>           all or codex,agents,claude,cursor,opencode,hermes
+  --scope <name>              user (default) or project
+  --force                     Replace an existing Browsemux skill copy
+
 Examples:
   browsemux run --url https://example.com --goal "Open the documentation" --max-steps 8
   browsemux run --provider openrouter --model typesafe/jev-1.14 --url https://example.com --goal "Find pricing"
   browsemux run --backend bsk --attach --bsk-scope my-agent --goal "Find the latest invoice"
+  browsemux skill install --harness codex,claude,cursor,opencode,hermes
 `;
 }
 

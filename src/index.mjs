@@ -17,4 +17,9 @@ export {
 } from './decisions/index.mjs';
 export { normalizeInputs, inputsForKind, resolveInput } from './inputs.mjs';
 export { runLoop } from './loop.mjs';
+export {
+  installBrowsemuxSkill,
+  resolveSkillTargets,
+  skillSourcePath,
+} from './skills.mjs';
 export { BrowsemuxError } from './errors.mjs';

@@ -17,6 +17,9 @@ try {
   } else if (output.doctor) {
     process.stdout.write(`${JSON.stringify(output.doctor, null, 2)}\n`);
     process.exitCode = 0;
+  } else if (output.skill) {
+    process.stdout.write(`${JSON.stringify(output.skill, null, 2)}\n`);
+    process.exitCode = 0;
   } else if (!process.argv.includes('--jsonl')) {
     process.stdout.write(`${JSON.stringify(output.result, null, 2)}\n`);
     process.exitCode = exitCodeFor(output.result.status);

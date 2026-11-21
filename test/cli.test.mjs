@@ -34,8 +34,25 @@ test('accepts the documented doctor JSON flag', () => {
 
 test('documents the single browsemux entry point', () => {
   assert.match(helpText(), /browsemux run/);
+  assert.match(helpText(), /browsemux skill install/);
   assert.match(helpText(), /agent-browser/);
   assert.match(helpText(), /bsk/);
   assert.match(helpText(), /typesafe/);
   assert.match(helpText(), /openrouter/);
+});
+
+test('parses portable skill installation options', () => {
+  const options = parseArgs([
+    'skill',
+    'install',
+    '--harness', 'codex,claude',
+    '--scope', 'project',
+    '--force',
+  ]);
+
+  assert.equal(options.command, 'skill');
+  assert.equal(options.skillAction, 'install');
+  assert.equal(options.harness, 'codex,claude');
+  assert.equal(options.skillScope, 'project');
+  assert.equal(options.force, true);
 });

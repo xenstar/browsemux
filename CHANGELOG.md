@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a portable `browsemux` harness skill and `browsemux skill install`
+  support for Codex, shared agent roots, Claude Code, Cursor, OpenCode, and
+  Hermes.
 - Added an install-first README with verified `agent-browser` and BSK setup
   paths, provider placeholders, and a complete installation guide.
 - Optimized BSK click, fill, select, press, and navigate execution through

@@ -156,6 +156,23 @@ browsemux doctor
 `doctor` checks CLI availability and whether the expected provider environment
 variable is present. It does not validate API credit or the BSK extension state.
 
+### 4. Install the harness routing skill
+
+Install the Browsemux skill into the supported harness skill directories:
+
+```bash
+browsemux skill install --harness all
+```
+
+The skill tells harness agents to use Browsemux for bounded browser work instead
+of driving `agent-browser` or BSK one command at a time. Direct browser commands
+remain reserved for setup, visual inspection, exploratory debugging, and human
+takeover.
+
+Start a new harness session after installation so skill discovery refreshes.
+See [Harness skills](docs/harness-skills.md) for per-harness paths, project
+installation, updates, and limitations.
+
 > Replace every `<ANGLE_BRACKET_VALUE>` before running an example. See
 > [Installation](docs/installation.md) for provider, BSK, update, and
 > troubleshooting instructions.
@@ -360,6 +377,7 @@ See [SECURITY.md](SECURITY.md) for the trust boundary.
 | Guide | Purpose |
 | --- | --- |
 | [Installation](docs/installation.md) | End-to-end setup, verification, updates, and troubleshooting |
+| [Harness skills](docs/harness-skills.md) | Routing guidance for Codex, Claude Code, Cursor, OpenCode, and Hermes |
 | [Backends](docs/backends.md) | `agent-browser` and BSK behavior |
 | [Providers](docs/providers.md) | TypeSafe, OpenRouter, and OpenAI-compatible configuration |
 | [Architecture](docs/architecture.md) | Control flow and trust boundaries |
