@@ -80,7 +80,7 @@ test('benchmark argument parser keeps the same model for both arms', () => {
     '--repeats', '3',
     '--model-retries', '1',
     '--no-write',
-  ], { cwd: 'G:\\opencode\\projects\\Search\\browsemux' });
+  ], { cwd: 'G:\\work\\browsemux' });
 
   assert.equal(options.model, 'example/model');
   assert.deepEqual(options.tasks, ['open-link', 'search-form']);
