@@ -1,6 +1,13 @@
-# Browsemux
+# 🧭 Browsemux
+
+> **Route browser decisions. Keep deterministic control.**
 
 **A bounded decision bridge between agent harnesses and browser backends.**
+
+[![Tests](https://img.shields.io/github/actions/workflow/status/xenstar/browsemux/test.yml?branch=main&label=tests)](https://github.com/xenstar/browsemux/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/xenstar/browsemux)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%E2%89%A520-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Status](https://img.shields.io/badge/status-pre--release-f59e0b)](#project-status)
 
 Browsemux sits between a harness, a typed decision model, and a browser. The
 decision model proposes one operation and one currently observed target. The
@@ -19,7 +26,14 @@ Harness
   <- compact evidence, usage, timings, and handoff
 ```
 
-## Why
+[Why](#why-browsemux) ·
+[Install](#quick-install) ·
+[Quick start](#quick-start) ·
+[Benchmarks](#benchmarks) ·
+[Documentation](#documentation)
+
+<a id="why-browsemux"></a>
+## ✨ Why Browsemux
 
 Harness language models are useful for planning, but repeatedly sending full
 page snapshots through a general model is slow and expensive. Browsemux moves
@@ -37,71 +51,139 @@ This is the same broad loop shape as JEV Ultrafast:
 Unlike a full browser-agent framework, Browsemux does not own reasoning about
 the entire task. The harness remains the planner and final verifier.
 
-## Current Scope
+**Core contract:** the model proposes typed intent; code validates and executes
+it. This keeps browser authority outside the model.
 
-Browser backends:
+<a id="project-status"></a>
+## 🚦 Project Status
+
+Browsemux is a **pre-release** project. The current supported installation path
+is directly from GitHub.
+
+Supported browser backends:
 
 - `agent-browser`
 - BSK / Tencent Agent Window
 
-Decision providers:
+Supported decision providers:
 
 - TypeSafe System One / JEV
 - OpenRouter Decisions
 - OpenAI-compatible chat completions with JSON output
 
-Browser Use, Playwright, Stagehand, Skyvern, and other frameworks are outside
-the initial scope.
+Browser Use, Playwright, Stagehand, Skyvern, and other frameworks remain
+outside the initial scope.
 
-## Measured Baseline
+<a id="quick-install"></a>
+## 🚀 Quick Install
 
-The original repeatable one-click benchmark on 2026-11-21 completed 3 of 3
-runs with both supported backends. Median end-to-end time was 4,065 ms with
-`agent-browser` and 3,401 ms with BSK. After the BSK `step` optimization,
-three fresh runs all succeeded with a median of 3,283 ms. Decision-model
-latency still dominates the run.
+### 1. Install Browsemux
 
-See [docs/benchmarks.md](docs/benchmarks.md) for commands, ranges, token usage,
-cost, and limitations. This is a small public-site benchmark, not a universal
-browser-agent ranking.
+Recommended global install from GitHub:
 
-The repository also includes a direct-harness A/B benchmark on controlled local
-flows. In the latest two-repeat run, Browsemux reduced `agent-browser` median
-wall time by 26.4% and cost per verified task by 30.7% at equal success, while
-BSK was 2.5% slower and 30.9% more expensive per verified task. Both outcomes
-matter: the connector is useful only when its saved context and avoided turns
-outweigh its recovery overhead. Reproduce it from [bench/](bench/README.md).
+```bash
+npm install -g github:xenstar/browsemux
+browsemux --version
+```
 
-## Requirements
+Install from a local clone:
+
+```bash
+git clone https://github.com/xenstar/browsemux.git
+cd browsemux
+npm install
+npm link
+browsemux --version
+```
+
+Requirements:
 
 - Node.js 20 or newer
-- One browser backend:
-  - `agent-browser` 0.38 or newer
-  - Tencent `bsk` 0.5 or newer
+- One supported browser backend
 - One decision-provider API key
 
-Check local commands:
+### 2. Install a browser backend
+
+Recommended for first-time users:
+
+```bash
+npm install -g agent-browser
+agent-browser install
+agent-browser doctor
+```
+
+For BSK on Windows:
+
+```powershell
+irm https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.ps1 | iex
+bsk --version
+bsk doctor
+```
+
+For BSK on macOS or Linux:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.sh | sh
+export PATH="${BSK_INSTALL_DIR:-$HOME/.local/bin}:$PATH"
+bsk --version
+bsk doctor
+```
+
+BSK also requires its browser extension and a connected Chromium browser. See
+Tencent's official
+[agent install guide](https://github.com/Tencent/BrowserSkill/blob/main/AGENT_INSTALL.md).
+
+### 3. Set a provider key
+
+PowerShell:
+
+```powershell
+$env:TYPESAFE_API_KEY = "<YOUR_TYPESAFE_API_KEY>"
+```
+
+macOS or Linux:
+
+```bash
+export TYPESAFE_API_KEY="<YOUR_TYPESAFE_API_KEY>"
+```
+
+Verify the local setup:
 
 ```bash
 browsemux doctor
 ```
 
-## Install From Source
+`doctor` checks CLI availability and whether the expected provider environment
+variable is present. It does not validate API credit or the BSK extension state.
 
-```bash
-cd browsemux
-npm link
-browsemux --help
+> Replace every `<ANGLE_BRACKET_VALUE>` before running an example. See
+> [Installation](docs/installation.md) for provider, BSK, update, and
+> troubleshooting instructions.
+
+<a id="quick-start"></a>
+## ⚡ Quick Start
+
+### agent-browser + JEV
+
+PowerShell:
+
+```powershell
+$env:TYPESAFE_API_KEY = "<YOUR_TYPESAFE_API_KEY>"
+
+browsemux run `
+  --backend agent-browser `
+  --provider typesafe `
+  --url https://example.com `
+  --goal "Open the Learn more documentation link" `
+  --success-url-contains iana.org `
+  --max-steps 4
 ```
 
-No runtime npm dependencies are installed by Browsemux.
-
-## Quick Start
-
-### agent-browser plus JEV
+macOS or Linux:
 
 ```bash
-export TYPESAFE_API_KEY=...
+export TYPESAFE_API_KEY="<YOUR_TYPESAFE_API_KEY>"
+
 browsemux run \
   --backend agent-browser \
   --provider typesafe \
@@ -111,35 +193,62 @@ browsemux run \
   --max-steps 4
 ```
 
-### agent-browser plus OpenRouter Decisions
+### agent-browser + OpenRouter Decisions
 
 ```bash
-export OPENROUTER_API_KEY=...
+export OPENROUTER_API_KEY="<YOUR_OPENROUTER_API_KEY>"
+
 browsemux run \
   --provider openrouter \
-  --model typesafe/jev-1.14 \
+  --model "<OPENROUTER_DECISION_MODEL_SLUG>" \
   --url https://example.com \
   --goal "Open the Learn more documentation link" \
   --success-url-contains iana.org
 ```
 
-### BSK plus OpenRouter Decisions
+### BSK + OpenRouter Decisions
 
 ```bash
-export OPENROUTER_API_KEY=...
+export OPENROUTER_API_KEY="<YOUR_OPENROUTER_API_KEY>"
+
 browsemux run \
   --backend bsk \
   --provider openrouter \
-  --model typesafe/jev-1.14 \
+  --model "<OPENROUTER_DECISION_MODEL_SLUG>" \
   --attach \
-  --bsk-scope my-agent-window \
+  --bsk-scope "<YOUR_AGENT_WINDOW_SCOPE>" \
   --goal "Find the latest invoice"
 ```
 
 BSK sessions close by default. Use `--keep-open` only when a human handoff is
 explicitly required.
 
-## Supplied Inputs
+<a id="benchmarks"></a>
+## 📊 Benchmarks
+
+The original repeatable one-click benchmark on 2026-11-21 completed 3 of 3
+runs with both supported backends. Median end-to-end time was 4,065 ms with
+`agent-browser` and 3,401 ms with BSK. After the BSK `step` optimization,
+three fresh runs all succeeded with a median of 3,283 ms. Decision-model
+latency still dominates the run.
+
+The direct-harness A/B benchmark adds controlled local flows. In the latest
+two-repeat run, Browsemux reduced `agent-browser` median wall time by 26.4% and
+cost per verified task by 30.7% at equal success. BSK was 2.5% slower and 30.9%
+more expensive per verified task.
+
+Both outcomes matter: the connector is useful only when its saved context and
+avoided turns outweigh its recovery overhead.
+
+- [Benchmark methodology and results](docs/benchmarks.md)
+- [Reproduce the direct-versus-mediated benchmark](bench/README.md)
+
+These are small controlled comparisons, not universal browser-agent rankings.
+
+<a id="configuration"></a>
+## 🧰 Configuration
+
+### Supplied inputs
 
 Decision models select supplied values; they do not invent credentials or form
 content.
@@ -164,7 +273,7 @@ Mark a value as secret when supplying metadata:
 {
   "text": {
     "password": {
-      "value": "secret-value",
+      "value": "<ACCOUNT_PASSWORD>",
       "label": "Account password",
       "secret": true
     }
@@ -174,7 +283,7 @@ Mark a value as secret when supplying metadata:
 
 Secret values are redacted from provider metadata.
 
-## Actions
+### Actions
 
 ```text
 CLICK
@@ -193,7 +302,7 @@ BLOCKED
 `CLICK`, `TYPE`, and `SELECT` require a target present in the latest snapshot.
 Invalid roles and stale refs are rejected before backend dispatch.
 
-## Completion
+### Completion
 
 `DONE` from a model is not treated as proof. Without deterministic checks, the
 result is `completed-unverified`.
@@ -201,13 +310,14 @@ result is `completed-unverified`.
 Use one or both deterministic checks:
 
 ```bash
---success-url-contains /pricing
---success-text-contains "Current plan"
+--success-url-contains <URL_FRAGMENT>
+--success-text-contains "<VISIBLE_TEXT>"
 ```
 
 Only matching checks produce `status: "success"`.
 
-## Output
+<a id="output"></a>
+## 📦 Output
 
 Default output is one JSON result. `--jsonl` streams:
 
@@ -230,7 +340,8 @@ The result contains:
 - bounded action history
 - compact handoff for the parent harness
 
-## Safety
+<a id="safety"></a>
+## 🔐 Safety
 
 - Providers cannot execute browser commands or JavaScript.
 - Targets must exist in the latest observation.
@@ -243,7 +354,19 @@ The result contains:
 
 See [SECURITY.md](SECURITY.md) for the trust boundary.
 
-## Project Policies
+<a id="documentation"></a>
+## 📚 Documentation
+
+| Guide | Purpose |
+| --- | --- |
+| [Installation](docs/installation.md) | End-to-end setup, verification, updates, and troubleshooting |
+| [Backends](docs/backends.md) | `agent-browser` and BSK behavior |
+| [Providers](docs/providers.md) | TypeSafe, OpenRouter, and OpenAI-compatible configuration |
+| [Architecture](docs/architecture.md) | Control flow and trust boundaries |
+| [Validation](docs/validation.md) | Tested environments and live smoke evidence |
+| [Benchmarks](docs/benchmarks.md) | Method, measurements, and limitations |
+
+## 🤝 Project Policies
 
 - [License](LICENSE): MIT
 - [Contributing](CONTRIBUTING.md)
@@ -252,7 +375,8 @@ See [SECURITY.md](SECURITY.md) for the trust boundary.
 - [Privacy and data handling](PRIVACY.md)
 - [Changelog](CHANGELOG.md)
 
-## Library
+<a id="library"></a>
+## 🧱 Library
 
 ```js
 import {
@@ -266,7 +390,7 @@ const browser = new AgentBrowserBackend();
 const provider = new OpenAICompatibleProvider({
   endpoint: 'https://openrouter.ai/api/v1/chat/completions',
   apiKey: process.env.OPENROUTER_API_KEY,
-  model: 'example/model',
+  model: '<OPENROUTER_DECISION_MODEL_SLUG>',
 });
 
 const observation = await browser.open('https://example.com');
@@ -281,17 +405,19 @@ const result = await runLoop({
 });
 ```
 
-## Development
+<a id="development"></a>
+## 🛠️ Development
 
 ```bash
 npm test
 npm run check
+npm run bench:smoke
 ```
 
 The initial release is intentionally small. Backend adapters must fail closed,
 and provider adapters must return typed proposals rather than browser commands.
 
-## Name
+## 🏷️ Name
 
 **Browsemux** means multiplexing one harness workflow across swappable browser
 backends and decision providers without giving either one direct authority over

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added an install-first README with verified `agent-browser` and BSK setup
+  paths, provider placeholders, and a complete installation guide.
 - Optimized BSK click, fill, select, press, and navigate execution through
   `bsk step`, with partial-failure reconciliation and no action replay.
 - Preserved nonzero BSK JSON so an executed action is never mistaken for an
